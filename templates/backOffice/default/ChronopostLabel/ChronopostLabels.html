@@ -1,0 +1,308 @@
+{extends file="admin-layout.tpl"}
+
+{block name="check-access"}view{/block}
+{block name="page-title"}{intl l="Chronopost labels" d="chronopost.label.bo.default"}{/block}
+
+{block name="after-admin-css"}
+{/block}
+
+{block name="main-content"}
+
+<div class="row">
+    <!-- Errors -->
+    {loop name="checkrights.chronopost" type="chronopost.label.check.rights"}
+        <div class="alert alert-danger">
+            <p>{$ERRMES} {$ERRFILE} | {intl l="Please change the access rights" d='chronopost.label.bo.default'}.</p>
+        </div>
+    {/loop}
+</div>
+
+{elseloop rel="checkrights.chronopost"}
+
+    {* default currency *}
+{loop type="currency" name="default_currency" default_only="1"}
+{$currencySymbol=$SYMBOL}
+{/loop}
+
+{form name="chronopost_label_select_form"}
+{if $form_error}<div class="alert alert-danger">{$form_error_message}</div>{/if}
+<form action="{url path='/admin/module/ChronopostLabel/generate'}" id="select-form" method="post">
+    {form_hidden_fields}
+    <div class="general-block-decorator col-md-12 form-horizontal">
+
+
+        <div class="col-md-12 choice-status">
+            <div class="col-md-3 row">
+                {form_field field="choice_status"}
+                <div class="form-group">
+                    <label for="{$label_attr.for}" class="control-label" >{$label}</label>
+                    <select id="{$id}" name="{$name}" class="form-control" onchange="getStatusSelect()">
+                        {foreach $choices as $choice}
+                        <option value="{$choice->value}">{$choice->label}</option>
+                        {/foreach}
+                    </select>
+                </div>
+                {/form_field}
+            </div>
+            <div class="col-md-1 row">
+            </div>
+            <div class="col-md-3 row status-select" hidden>
+                {render_form_field field="status_select"}
+            </div>
+        </div>
+
+    </div>
+
+    <div class="general-block-decorator col-md-12 form-horizontal">
+        <div class="row">
+            <input type="submit" class="btn btn-block btn-info" value="{intl l="Generate selected labels" d="ChronopostLabel.bo.default"}">
+        </div>
+    </div>
+
+    {if $home_delivery_activate == 1}
+    <div class="col-md-12 general-block-decorator">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-12 title title-without-tabs">
+                    {intl l='Home Delivery' d='chronopost.label.bo.default'}
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-condensed">
+                        <caption class="clearfix">
+                            <thead>
+                            <tr>
+                                <th class="text-center col-md-1">
+                                    <div class="radio">
+                                        <input type="checkbox" id="head-home-delivery-check" class="form-control" onclick="checkAll('home-delivery')">
+                                    </div>
+                                </th>
+                                <th class="text-center">{intl l='Reference' d='chronopost.label.bo.default'}</th>
+                                <th class="text-center">{intl l='Status' d='chronopost.label.bo.default'}</th>
+                                <th class="text-center">{intl l="Delivery Type" d='chronopost.label.bo.default'}</th>
+                                <th class="text-center">{intl l="Date" d='chronopost.label.bo.default'}</th>
+                                <th class="text-center">{intl l="Total Amount" d='chronopost.label.bo.default'}</th>
+                                <th class="text-center">{intl l='Destination' d='chronopost.label.bo.default'}</th>
+                                <th class="text-center">{intl l='Label Number' d='chronopost.label.bo.default'}</th>
+                                <th class="actions text-center">{intl l='Action' d='chronopost.label.bo.default'}</th>
+                            </tr>
+                            </thead>
+                            {loop type="chronopost.home.delivery.export.label" name="export_home_directory_label" order_status='1,2,3'}
+                                {assign "delivery_type" $DELIVERY_TYPE}
+                                {assign "label_nbr" $LABEL_NBR}
+                                {loop type="order" name="get-order-home-delivery" id=$ORDER_ID backend_context="true" customer="*"}
+                                    <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <div class="radio">
+                                            {form_field field="order_id" value_key=$ID}
+                                                <input type="checkbox" class="form-control home-delivery-check" value={$ID} name={$name}>
+                                            {/form_field}
+                                            </div>
+                                        </td>
+                                        <td class="text-center"><a href="{url path="admin/order/update/%orderId" orderId=$ID}">{$REF}</a></td>
+                                        {loop type="order-status" name="order_status_loop" id={$STATUS}}
+                                            <td class="text-center">
+                                                <span class="label" style="background-color: {$COLOR}">{$TITLE}</span>
+                                            </td>
+                                        {/loop}
+                                        <td class="text-center">{$delivery_type}</td>
+                                        <td class="text-center">{format_date date=$CREATE_DATE}</td>
+                                        <td class="text-center">{$TOTAL_AMOUNT + $TOTAL_TAX} {$currencySymbol}</td>
+                                        {loop type="order_address" name="destination_loop" id=$DELIVERY_ADDRESS}
+                                            {loop type="country" name="destination_country_loop" id="$COUNTRY"}
+                                                {assign "country" $TITLE}
+                                            {/loop}
+                                            <td class="text-center">{$country}, {$ADDRESS1}, {$CITY} {$ZIPCODE}</td>
+                                        {/loop}
+                                        <td class="text-center">
+                                            <a href={url path='/admin/module/ChronopostLabel/getLabel/%id' id=$ID}>
+                                                {$label_nbr}
+                                            </a>
+                                        </td>
+                                        <td class="actions text-center">
+                                            {if $label_nbr}
+                                                <a class="btn btn-default btn-xs js-export-download"
+                                                   title="{intl l='Download this label' d='chronopost.label.bo.default'}"
+                                                   href="{url path="/admin/module/ChronopostLabel/saveLabel" orderId=$ID}">
+                                                    <span class="glyphicon glyphicon-floppy-disk"></span>
+                                                </a>
+                                                <a class="btn btn-danger btn-xs"
+                                                   title="{intl l='Delete this label' d='chronopost.label.bo.default'}"
+                                                   href="{url path='/admin/module/ChronopostLabel/deleteLabel' orderId=$ID redirect_url="/admin/module/ChronopostLabel/labels"}">
+                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                </a>
+                                            {/if}
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                {/loop}
+                            {/loop}
+                        </caption>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {/if}
+
+    {if $pickup_point_activate == 1}
+    <div class="col-md-12 general-block-decorator">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-12 title title-without-tabs">
+                    {intl l='Pickup Point' d='chronopost.label.bo.default'}
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-condensed">
+                        <caption class="clearfix">
+                            <thead>
+                            <tr>
+                                <th class="text-center col-md-1">
+                                    <div class="radio">
+                                        <input type="checkbox" id="head-pickup-point-check" class="form-control" onclick="checkAll('pickup-point')">
+                                    </div>
+                                </th>
+                                <th class="text-center">{intl l='Reference' d='chronopost.label.bo.default'}</th>
+                                <th class="text-center">{intl l='Status' d='chronopost.label.bo.default'}</th>
+                                <th class="text-center">{intl l="Delivery Type" d='chronopost.label.bo.default'}</th>
+                                <th class="text-center">{intl l="Date" d='chronopost.label.bo.default'}</th>
+                                <th class="text-center">{intl l="Total Amount" d='chronopost.label.bo.default'}</th>
+                                <th class="text-center">{intl l='Destination' d='chronopost.label.bo.default'}</th>
+                                <th class="text-center">{intl l='Label Number' d='chronopost.label.bo.default'}</th>
+                                <th class="actions text-center">{intl l='Action' d='chronopost.label.bo.default'}</th>
+                            </tr>
+                            </thead>
+                            {loop type="chronopost.pickup.point.export.label" name="export_pickup_point_label" order_status='1,2,3'}
+                                {assign "delivery_type" $DELIVERY_TYPE}
+                                {assign "label_nbr" $LABEL_NBR}
+                                {loop type="order" name="get-order-pickup-point" id=$ORDER_ID backend_context="true" customer="*"}
+                                    <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <div class="radio">
+                                                {form_field field="order_id" value_key=$ID}
+                                                    <input type="checkbox" class="form-control pickup-point-check" value={$ID} name={$name}>
+                                                {/form_field}
+                                            </div>
+                                        </td>
+                                        <td class="text-center"><a href="{url path="admin/order/update/%orderId" orderId=$ID}">{$REF}</a></td>
+                                        {loop type="order-status" name="order_status_loop" id={$STATUS}}
+                                            <td class="text-center">
+                                                <span class="label" style="background-color: {$COLOR}">{$TITLE}</span>
+                                            </td>
+                                        {/loop}
+                                        <td class="text-center">{$delivery_type}</td>
+                                        <td class="text-center">{format_date date=$CREATE_DATE}</td>
+                                        <td class="text-center">{$TOTAL_AMOUNT + $TOTAL_TAX} {$currencySymbol}</td>
+                                        {loop type="order_address" name="destination_loop" id=$DELIVERY_ADDRESS}
+                                            {loop type="country" name="destination_country_loop" id="$COUNTRY"}
+                                                {assign "country" $TITLE}
+                                            {/loop}
+                                            <td class="text-center">{$country}, {$ADDRESS1}, {$CITY} {$ZIPCODE}</td>
+                                        {/loop}
+                                        <td class="text-center">
+                                            <a href={url path="/admin/module/ChronopostLabel/getLabel/%id" id=$ID}>
+                                                {$label_nbr}
+                                            </a>
+                                        </td>
+                                        <td class="actions text-center">
+                                            {if $label_nbr}
+                                                <a class="btn btn-default btn-xs js-export-download"
+                                                   title="{intl l='Download this label' d='chronopost.label.bo.default'}"
+                                                   href="{url path="/admin/module/ChronopostLabel/saveLabel" orderId=$ID}">
+                                                    <span class="glyphicon glyphicon-floppy-disk"></span>
+                                                </a>
+                                                <a class="btn btn-danger btn-xs"
+                                                   title="{intl l='Delete this label' d='chronopost.label.bo.default'}"
+                                                   href="{url path='/admin/module/ChronopostLabel/deleteLabel' orderId=$ID redirect_url="/admin/module/ChronopostLabel/labels"}">
+                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                </a>
+                                            {/if}
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                {/loop}
+                            {/loop}
+                        </caption>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {/if}
+
+    <div class="general-block-decorator col-md-12 form-horizontal">
+        <div class="row">
+            <input type="submit" class="btn btn-block btn-info" value="{intl l="Generate selected labels" d="ChronopostLabel.bo.default"}">
+        </div>
+    </div>
+
+    {/form}
+
+
+    {include
+    file = "includes/generic-warning-dialog.html"
+
+    dialog_id       = "chronopost_home_delivery_dialog"
+    dialog_body     = ""
+    dialog_title    = {intl d='chronopost.label.bo.default' l="Message"}
+    }
+
+    {* JS Templates *}
+    <script id="tpl-slice" type="text/html">
+        <tr class="js-slice" data-area="<%=areaId %>" data-id="<%=id %>" data-delivmode="<%=deliveryModeId %>">
+            <th class="col-md-3">
+                <input type="text" data-field="weight-max" class="form-control js-slice-weight-max" value="<%=weightMax %>" data-old="<%=weightMax %>" />
+            </th>
+            <th class="col-md-3">
+                <input type="text" data-field="price-max" class="form-control js-slice-price-max" value="<%=priceMax %>" data-old="<%=priceMax %>" />
+            </th>
+            <th class="col-md-5">
+                <input type="text" data-field="price" class="form-control js-slice-price" value="<%=price %>" data-old="<%=price %>" />
+            </th>
+            <th class="col-md-1">
+                <div class="btn-group">
+                    {loop type="auth" name="can_change" role="ADMIN" module="chronopost" access="UPDATE"}
+                        <a class="btn btn-default btn-xs js-slice-save" title="{intl d='chronopost.label.bo.default' l='Save this price slice'}">
+                            <span class="glyphicon glyphicon-floppy-disk"></span>
+                        </a>
+                    {/loop}
+                    {loop type="auth" name="can_change" role="ADMIN" module="chronopost" access="DELETE"}
+                        <a class="btn btn-default btn-xs js-slice-delete" title="{intl d='chronopost.label.bo.default' l='Delete this price slice'}" data-id="<%=id %>">
+                            <span class="glyphicon glyphicon-trash"></span>
+                        </a>
+                    {/loop}
+                </div>
+            </th>
+        </tr>
+    </script>
+{/elseloop}
+
+{* Download zip file if we have the name in the URL parameters *}
+{if $smarty.get.zip}
+    <iframe style="width:100%;height:20px;border:none" src="{url path="/admin/module/ChronopostLabel/labels-zip/%hash" hash={$smarty.get.zip}}"></iframe>
+{/if}
+
+{/block}
+
+{block name="javascript-last-call"}
+    <script type="text/javascript">
+        function checkAll(module = null) {
+            var checkboxes = $('.' + module + '-check');
+            for(var i=0; checkboxes.length; i++){
+                checkboxes[i].checked = $('#head-' + module + '-check').is(':checked');
+            }
+        }
+
+        function getStatusSelect(){
+            var $statusSelect = $(".status-select");
+            var $choiceStatus = $(".choice-status");
+
+            $statusSelect.hide();
+
+            if ($choiceStatus.find(":selected").val() === "other"){
+                $statusSelect.show();
+            }
+        }
+    </script>
+{/block}

@@ -1,0 +1,57 @@
+{if $delivery_module == 'ChronopostHomeDelivery'}
+    {loop type='chronopost.home.delivery.export.label' name='order_home_directory_label' order_id=$order_id}
+        {assign "label_nbr" $LABEL_NBR}
+        {assign "delivery_type" $DELIVERY_TYPE}
+    {/loop}
+{/if}
+
+{if $delivery_module == "ChronopostPickupPoint"}
+    {loop type='chronopost.pickup.point.export.label' name='order_pickup_point_label' order_id=$order_id}
+        {assign "label_nbr" $LABEL_NBR}
+        {assign "delivery_type" $DELIVERY_TYPE}
+    {/loop}
+{/if}
+
+
+
+{if $delivery_type}
+    <br>
+    <div class="title title-without-tabs clearfix">
+        {intl l='Chronopost label' d='chronopost.label.bo.default'}
+    </div>
+    <table class="table table-striped">
+        <tr>
+            <th>{intl l='Label Number' d='chronopost.label.bo.default'}</th>
+            <th>{intl l='Delivery Type' d='chronopost.label.bo.default'}</th>
+            <th>{intl l='Date' d='chronopost.label.bo.default'}</th>
+            <th>{intl l='Destination' d='chronopost.label.bo.default'}</th>
+            <th></th>
+        </tr>
+        <tr>
+            <td>{$label_nbr}</td>
+            <td>{$delivery_type}</td>
+            {loop type="order" name="get-order-date" id=$order_id customer="*" backend_context="true"}
+            <td>{format_date date=$CREATE_DATE}</td>
+                {loop type="order_address" name="destination_loop" id=$DELIVERY_ADDRESS}
+                    <td>{$ADDRESS1} {$CITY} {$ZIPCODE}</td>
+                {/loop}
+            {/loop}
+            <td>
+                <a class="btn btn-primary pull-right {if !$label_nbr} disabled {/if}" href="{url path='/admin/module/ChronopostLabel/saveLabel' labelNbr=$label_nbr orderId=$order_id}">
+                    {intl l='Download' d='chronopost.label.bo.default'}
+                </a>
+                <a class="btn btn-info pull-right {if !$label_nbr} disabled {/if}" href={url path="/admin/module/ChronopostLabel/getLabel/{$order_id}"}>
+                    {intl l='View' d='chronopost.label.bo.default'}
+                </a>
+                <a class="btn btn-danger pull-right {if !$label_nbr} disabled {/if}" href="{url path='/admin/module/ChronopostLabel/deleteLabel' orderId=$order_id redirect_url="/admin/order/update/$order_id"} ">
+                    {intl l='Delete' d='chronopost.label.bo.default'}
+                </a>
+                {if !$label_nbr}
+                    <a class="btn btn-primary pull-right" href={url path="/admin/module/ChronopostLabel/generateLabel" orderId=$order_id}>
+                        {intl l='Generate' d='chronopost.label.bo.default'}
+                    </a>
+                {/if}
+            </td>
+        </tr>
+    </table>
+{/if}

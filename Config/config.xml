@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<config xmlns="http://thelia.net/schema/dic/config"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://thelia.net/schema/dic/config http://thelia.net/schema/dic/config/thelia-1.0.xsd">
+
+    <loops>
+        <loop class="ChronopostLabel\Loop\ChronopostLabelCheckRightsLoop" name="chronopost.label.check.rights" />
+    </loops>
+
+    <forms>
+        <form name="chronopost_label_configuration_form" class="ChronopostLabel\Form\ChronopostLabelConfigurationForm" />
+        <form name="chronopost_label_select_form" class="ChronopostLabel\Form\ChronopostLabelSelectForm" />
+    </forms>
+
+    <hooks>
+        <hook id="chronopost.label.config" class="ChronopostLabel\Hook\BackHook">
+            <tag name="hook.event_listener" event="main.in-top-menu-items" type="back" method="onInTopMenuItem"/>
+            <tag name="hook.event_listener" event="order-edit.bill-top" type="back" method="orderEditBillTop"/>
+            <tag name="hook.event_listener" event="module.configuration" type="back" method="onModuleConfiguration"/>
+        </hook>
+    </hooks>
+
+    <services>
+        <service id="chronopost.notification.mail" class="ChronopostLabel\EventListeners\ShippingNotificationSender">
+            <argument type="service" id="thelia.parser" />
+            <argument type="service" id="mailer"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+    </services>
+
+</config>

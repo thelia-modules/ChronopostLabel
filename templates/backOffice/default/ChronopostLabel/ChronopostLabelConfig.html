@@ -1,0 +1,91 @@
+<div class="col-md-12 row table" style="display: flex">
+    <div class="col-md-6 panel panel-default" style="flex: 1">
+        {form name="chronopost_label_configuration_form" type="chronopost_label_configuration_form"}
+            <form class="" action="{url path='/admin/module/ChronopostLabel/config'}" method="post">
+                <div class="panel-heading">
+                    <h4 class="panel-title">{intl l="Chronopost informations"}</h4>
+                    {include
+                    file      = "includes/inner-form-toolbar.html"
+                    hide_flags = true
+                    hide_save_and_close_button = true
+                    }
+                </div>
+                <div class="panel-body">
+                    {form_hidden_fields form=$form}
+
+                    {if $form_error}
+                        <div class="alert alert-danger">{$form_error_message}</div>
+                    {/if}
+
+                    {render_form_field field="success_url" value={url path="/admin/module/ChronopostLabel"}}
+
+                    {render_form_field field="chronopost_label_code"}
+
+                    {render_form_field field="chronopost_label_password"}
+
+                    {render_form_field field="chronopost_label_label_dir"}
+
+                    {render_form_field field="chronopost_label_label_type"}
+
+                    {render_form_field field="chronopost_label_send_as_customer_status"}
+
+                    {render_form_field field="chronopost_label_change_order_status"}
+
+                    {render_form_field field="chronopost_label_expiration_date"}
+
+                </div>
+
+            </form>
+        {/form}
+    </div>
+
+    <div class="col-md-6 panel panel-default" style="flex: 1">
+        {form name="chronopost_label_configuration_form" type="chronopost_label_configuration_form"}
+            <form class="" action="{url path='/admin/module/ChronopostLabel/configShipper'}" method="post">
+                <div class="panel-heading">
+                    <h4 class="panel-title">{intl l="Shipper informations"}</h4>
+                    {include
+                    file      = "includes/inner-form-toolbar.html"
+                    hide_flags = true
+                    hide_save_and_close_button = true
+                    }
+                </div>
+                <div class="panel-body">
+                    {form_hidden_fields form=$form}
+
+                    {if $form_error}
+                        <div class="alert alert-danger">{$form_error_message}</div>
+                    {/if}
+
+                    {render_form_field field="success_url" value={url path="/admin/module/ChronopostLabel"}}
+
+                    {render_form_field field="chronopost_label_shipper_name1"}
+
+                    {render_form_field field="chronopost_label_shipper_name2"}
+
+                    {render_form_field field="chronopost_label_shipper_address1"}
+
+                    {render_form_field field="chronopost_label_shipper_address2"}
+
+                    {render_form_field field="chronopost_label_shipper_country"}
+
+                    {render_form_field field="chronopost_label_shipper_city"}
+
+                    {render_form_field field="chronopost_label_shipper_zipcode"}
+
+                    {render_form_field field="chronopost_label_shipper_civ"}
+
+                    {render_form_field field="chronopost_label_shipper_contact_name"}
+
+                    {render_form_field field="chronopost_label_shipper_phone"}
+
+                    {render_form_field field="chronopost_label_shipper_mobile_phone"}
+
+                    {render_form_field field="chronopost_label_shipper_mail"}
+
+                </div>
+
+            </form>
+        {/form}
+    </div>
+</div>
