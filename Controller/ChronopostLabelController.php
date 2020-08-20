@@ -27,7 +27,6 @@ use Thelia\Tools\URL;
 
 class ChronopostLabelController extends BaseAdminController
 {
-
     public function showLabels()
     {
         $homeDeliveryModule = ModuleQuery::create()->findOneByCode('ChronopostHomeDelivery')->getActivate();
@@ -81,6 +80,7 @@ class ChronopostLabelController extends BaseAdminController
     /**
      * @param $orderId
      * @return mixed|BinaryFileResponse
+     * @throws \Propel\Runtime\Exception\PropelException
      */
     public function getLabel($orderId)
     {

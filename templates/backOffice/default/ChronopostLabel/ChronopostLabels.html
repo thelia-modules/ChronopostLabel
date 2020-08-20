@@ -86,7 +86,7 @@
                                 <th class="actions text-center">{intl l='Action' d='chronopost.label.bo.default'}</th>
                             </tr>
                             </thead>
-                            {loop type="chronopost.home.delivery.export.label" name="export_home_directory_label" order_status='1,2,3'}
+                            {loop type="chronopost.label.export.home.delivery.labels" name="export_home_directory_label" order_status='1,2,3'}
                                 {assign "delivery_type" $DELIVERY_TYPE}
                                 {assign "label_nbr" $LABEL_NBR}
                                 {loop type="order" name="get-order-home-delivery" id=$ORDER_ID backend_context="true" customer="*"}
@@ -172,7 +172,7 @@
                                 <th class="actions text-center">{intl l='Action' d='chronopost.label.bo.default'}</th>
                             </tr>
                             </thead>
-                            {loop type="chronopost.pickup.point.export.label" name="export_pickup_point_label" order_status='1,2,3'}
+                            {loop type="chronopost.label.export.pickup.point.labels" name="export_pickup_point_label" order_status='1,2,3'}
                                 {assign "delivery_type" $DELIVERY_TYPE}
                                 {assign "label_nbr" $LABEL_NBR}
                                 {loop type="order" name="get-order-pickup-point" id=$ORDER_ID backend_context="true" customer="*"}

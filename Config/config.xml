@@ -6,6 +6,8 @@
 
     <loops>
         <loop class="ChronopostLabel\Loop\ChronopostLabelCheckRightsLoop" name="chronopost.label.check.rights" />
+        <loop class="ChronopostLabel\Loop\ChronopostLabelHomeDeliveryExportLoop" name="chronopost.label.export.home.delivery.labels" />
+        <loop class="ChronopostLabel\Loop\ChronopostLabelPickupPointExportLoop" name="chronopost.label.export.pickup.point.labels" />
     </loops>
 
     <forms>
@@ -20,13 +22,5 @@
             <tag name="hook.event_listener" event="module.configuration" type="back" method="onModuleConfiguration"/>
         </hook>
     </hooks>
-
-    <services>
-        <service id="chronopost.notification.mail" class="ChronopostLabel\EventListeners\ShippingNotificationSender">
-            <argument type="service" id="thelia.parser" />
-            <argument type="service" id="mailer"/>
-            <tag name="kernel.event_subscriber"/>
-        </service>
-    </services>
 
 </config>

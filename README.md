@@ -28,5 +28,72 @@ You can then generate and download labels from the Chronopost Label page accessi
 
 ## Loop
 
-To be written
+###[chronopost.label.check.rights]
 
+Check if label directory is writable and readable.
+
+### Input arguments
+
+None
+
+### Output arguments
+
+|Variable   |Description |
+|---        |--- |
+|$ERRMES    | Error message |
+|$ERRFILE   | Folder where the error has been detected |
+
+###[chronopost.label.export.home.delivery.labels]
+
+Get a list of orders made with the home delivery module, and their label informations
+
+### Input arguments
+
+|Argument |Description |
+|---      |--- |
+|**order_ref** | Reference of the order you want to display|
+|**order_id** | Id of the order you want to display|
+|**delivery_type** | Delivery type (ex Fresh13) of the orders you want to display |
+|**delivery_code** | Delivery code (ex 2R) of the orders you want to display. |
+|**label_number** | Label number of the order you want to display |
+|**label_directory** | Label directory of the orders you want to display |
+|**order_status** | Status of the order you want to display|
+
+### Output arguments
+
+|Variable   |Description |
+|---        |--- |
+|$REFERENCE    | Reference of the order |
+|$DELIVERY_TYPE    | Delivery type of the order (ex Fresh13) |
+|$DELIVERY_CODE    | Delivery code of the order (ex 2R) |
+|$LABEL_NBR    | Label number of the order |
+|$LABEL_DIR    | Label directory of the order |
+|$ORDER_ID    | Order ID |
+
+###[chronopost.label.export.pickup.point.labels]
+
+Get a list of orders made with the pickup point delivery module, and their label informations
+
+
+### Input arguments
+
+|Argument |Description |
+|---      |--- |
+|**order_ref** | Reference of the order you want to display|
+|**order_id** | Id of the order you want to display|
+|**delivery_type** | Delivery type (ex Fresh13) of the orders you want to display |
+|**delivery_code** | Delivery code (ex 2R) of the orders you want to display. |
+|**label_number** | Label number of the order you want to display |
+|**label_directory** | Label directory of the orders you want to display |
+|**order_status** | Status of the order you want to display|
+
+### Output arguments
+
+|Variable   |Description |
+|---        |--- |
+|$REFERENCE    | Reference of the order |
+|$DELIVERY_TYPE    | Delivery type of the order (ex Fresh13) |
+|$DELIVERY_CODE    | Delivery code of the order (ex 2R) |
+|$LABEL_NBR    | Label number of the order |
+|$LABEL_DIR    | Label directory of the order |
+|$ORDER_ID    | Order ID |

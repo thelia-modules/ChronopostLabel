@@ -26,8 +26,6 @@ class ChronopostLabel extends BaseModule
     /** @var string */
     const DOMAIN_NAME = 'chronopostLabel';
 
-    const CHRONOPOST_CONFIRMATION_MESSAGE_NAME = 'chronopost_confirmation_message_name';
-
     /**
      * @param ConnectionInterface|null $con
      * @throws \Propel\Runtime\Exception\PropelException
@@ -70,25 +68,6 @@ class ChronopostLabel extends BaseModule
         $fs = new Filesystem();
         if (!is_dir($dir)) {
             $fs->mkdir($dir);
-        }
-
-        if (null === MessageQuery::create()->findOneByName(self::CHRONOPOST_CONFIRMATION_MESSAGE_NAME)) {
-            $message = new Message();
-
-            $message
-                ->setName(self::CHRONOPOST_CONFIRMATION_MESSAGE_NAME)
-                ->setHtmlLayoutFileName('order_shipped.html')
-                ->setTextLayoutFileName('order_shipped.txt')
-                ->setLocale('en_US')
-                ->setTitle('Order send confirmation')
-                ->setSubject('Order send confirmation')
-
-                ->setLocale('fr_FR')
-                ->setTitle('Confirmation d\'envoi de commande')
-                ->setSubject('Confirmation d\'envoi de commande')
-
-                ->save()
-            ;
         }
 
     }
