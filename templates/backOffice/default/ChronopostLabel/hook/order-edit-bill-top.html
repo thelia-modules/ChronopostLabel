@@ -14,7 +14,7 @@
 
 
 
-{if $delivery_type}
+{if $delivery_module == "ChronopostPickupPoint" || $delivery_module == 'ChronopostHomeDelivery'}
     <br>
     <div class="title title-without-tabs clearfix">
         {intl l='Chronopost label' d='chronopost.label.bo.default'}
