@@ -317,14 +317,8 @@ class ChronopostLabelController extends BaseAdminController
         $chronopostProductCode = $chronopostOrder->getDeliveryCode();
         $chronopostProductCode = str_pad($chronopostProductCode, 2, "0", STR_PAD_LEFT);
 
-        $name2 = "";
-        if ($customerDeliveryAddress->getCompany()) {
-            $name2 = $this->getContactName($customerDeliveryAddress);
-        }
-        $name3 = "";
-        if ($customerInvoiceAddress->getCompany()) {
-            $name3 = $this->getContactName($customerInvoiceAddress);
-        }
+        $invoiceCustomerName = $this->getContactName($customerInvoiceAddress);
+        $deliveryCustomerName = $this->getContactName($customerDeliveryAddress);
 
         /** START */
 
@@ -356,13 +350,13 @@ class ChronopostLabelController extends BaseAdminController
         $APIData["customerValue"] = [
             "customerCivility" => $this->getChronopostCivility($customer),
             "customerName" => $customerInvoiceAddress->getCompany(),
-            "customerName2" => $name3,
+            "customerName2" => $invoiceCustomerName,
             "customerAdress1" => $customerInvoiceAddress->getAddress1(),
             "customerAdress2" => $customerInvoiceAddress->getAddress2(),
             "customerZipCode" => $customerInvoiceAddress->getZipcode(),
             "customerCity" => $customerInvoiceAddress->getCity(),
             "customerCountry" => $this->getCountryIso($customerInvoiceAddress->getCountryId()),
-            "customerContactName" => $this->getContactName($customerInvoiceAddress),
+            "customerContactName" => $invoiceCustomerName,
             "customerEmail" => $customer->getEmail(),
             "customerPhone" => $customerInvoiceAddress->getPhone(),
             "customerMobilePhone" => $customerInvoiceAddress->getCellphone(),
@@ -373,13 +367,13 @@ class ChronopostLabelController extends BaseAdminController
         /** CUSTOMER DELIVERY INFORMATIONS */
         $APIData["recipientValue"] = [
             "recipientName" => $customerDeliveryAddress->getCompany(),
-            "recipientName2" => $name2,
+            "recipientName2" => $deliveryCustomerName,
             "recipientAdress1" => $customerDeliveryAddress->getAddress1(),
             "recipientAdress2" => $customerDeliveryAddress->getAddress2(),
             "recipientZipCode" => $customerDeliveryAddress->getZipcode(),
             "recipientCity" => $customerDeliveryAddress->getCity(),
             "recipientCountry" => $this->getCountryIso($customerDeliveryAddress->getCountryId()),
-            "recipientContactName" => $this->getContactName($customerDeliveryAddress),
+            "recipientContactName" => $deliveryCustomerName,
             "recipientEmail" => $customer->getEmail(),
             "recipientPhone" => $phone,
             "recipientMobilePhone" => $customerDeliveryAddress->getCellphone(),
@@ -388,8 +382,8 @@ class ChronopostLabelController extends BaseAdminController
 
         /** RefValue */
         $APIData["refValue"] = [
-            "shipperRef" => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_NAME1],
-            "recipientRef" => $customer->getId(),
+            "shipperRef" => $order->getRef(),
+            "recipientRef" => $customer->getRef(),
         ];
 
         /** SKYBILL  (LABEL INFORMATIONS) */
