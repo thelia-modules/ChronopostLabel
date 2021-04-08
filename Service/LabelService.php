@@ -38,16 +38,24 @@ class LabelService
             $chronopostOrder = ChronopostPickupPointOrderQuery::create()->findOneByOrderId($orderId);
         }
 
+        if ($chronopostOrder == null) {
+            return new JsonResponse([
+                'error' => "No order found with this id : ".$orderId
+            ]);
+        }
+        /** @var Order $order */
+        $order = $chronopostOrder->getOrder();
+
         $this->createLabel($chronopostOrder,'default', null, $weight);
 
         return new JsonResponse([
             'id' => $chronopostOrder->getLabelNumber(),
-            'url' => URL::getInstance()->absoluteUrl('/admin/module/ChronopostLabel/getLabel/' . $chronopostOrder->getId()),
-            'number' => $chronopostOrder->getRef(),
+            'url' => URL::getInstance()->absoluteUrl('/admin/module/ChronopostLabel/getLabel/' . $order->getId()),
+            'number' => $order->getRef(),
             'order' => [
-                'id' => $chronopostOrder->getId(),
+                'id' => $order->getId(),
                 'status' => [
-                    'id' => $chronopostOrder->getOrderStatus()->getId()
+                    'id' => $order->getOrderStatus()->getId()
                 ]
             ]
         ]);
@@ -64,67 +72,62 @@ class LabelService
     {
         $order = OrderQuery::create()->findOneById($chronopostOrder->getOrderId());
 
-        try {
-            $APIDatas = [];
+        $APIDatas = [];
 
-            $reference = $order->getRef();
-            $config = ChronopostLabelConst::getConfig();
+        $reference = $order->getRef();
+        $config = ChronopostLabelConst::getConfig();
 
 
-            $log = Tlog::getNewInstance();
-            $log->setDestinations("\\Thelia\\Log\\Destination\\TlogDestinationFile");
-            $log->setConfig("\\Thelia\\Log\\Destination\\TlogDestinationFile", 0, THELIA_ROOT . "log" . DS . "log-chronopost-label.txt");
+        $log = Tlog::getNewInstance();
+        $log->setDestinations("\\Thelia\\Log\\Destination\\TlogDestinationFile");
+        $log->setConfig("\\Thelia\\Log\\Destination\\TlogDestinationFile", 0, THELIA_ROOT . "log" . DS . "log-chronopost-label.txt");
 
-            $log->notice("#CHRONOPOST // L'étiquette de la commande " . $reference . " est en cours de création.");
+        $log->notice("#CHRONOPOST // L'étiquette de la commande " . $reference . " est en cours de création.");
 
-            if ($chronopostOrder) {
-                $weight = ($weight == null) ? $order->getWeight() : $weight;
-                $APIDatas[] = $this->writeAPIData($order, $chronopostOrder, $weight, 1, 1);
+        if ($chronopostOrder) {
+            $weight = ($weight == null) ? $order->getWeight() : $weight;
+            $APIDatas[] = $this->writeAPIData($order, $chronopostOrder, $weight, 1, 1);
+        } else {
+            $log->error("#CHRONOPOST // Impossible de trouver la commande " . $reference . " dans la table des commandes Chronopost.");
+            return null;
+        }
+
+        /** Send order informations to the Chronopost API */
+        $soapClient = new \SoapClient(ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPING_SERVICE_WSDL, array("trace" => 1, "exception" => 1));
+
+        foreach ($APIDatas as $APIData) {
+
+            $response = $soapClient->__soapCall('shippingV3', [$APIData]);
+
+            if (0 != $response->return->errorCode) {
+                throw new \Exception($response->return->errorMessage, $response->return->errorCode);
+            }
+
+            /** Create the label accordingly */
+            $label = $config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR] . $response->return->skybillNumber . $this->getLabelExtension($config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_TYPE]);
+
+            if (false === @file_put_contents($label, $response->return->skybill)) {
+                $log->error("L'étiquette n'a pas pu être sauvegardée dans " . $label);
             } else {
-                $log->error("#CHRONOPOST // Impossible de trouver la commande " . $reference . " dans la table des commandes Chronopost.");
-                return null;
-            }
+                $log->notice("L'étiquette Chronopost a été sauvegardée en tant que " . $response->return->skybillNumber . $this->getLabelExtension($config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_TYPE]));
+                $chronopostOrder
+                    ->setLabelNumber($response->return->skybillNumber . $this->getLabelExtension($config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_TYPE]))
+                    ->setLabelDirectory($config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR])
+                    ->save();
 
-            /** Send order informations to the Chronopost API */
-            $soapClient = new \SoapClient(ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPING_SERVICE_WSDL, array("trace" => 1, "exception" => 1));
+                $order->setDeliveryRef($response->return->skybillNumber)->save();
 
-            foreach ($APIDatas as $APIData) {
+                /** Change the order status */
+                switch ($statusOption){
+                    case 'default':
+                        $order->setStatusId($config[ChronopostLabelConst::CHRONOPOST_LABEL_CHANGE_ORDER_STATUS])->save();
+                        break;
 
-                $response = $soapClient->__soapCall('shippingV3', [$APIData]);
-
-                if (0 != $response->return->errorCode) {
-                    throw new \Exception($response->return->errorMessage, $response->return->errorCode);
-                }
-
-                /** Create the label accordingly */
-                $label = $config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR] . $response->return->skybillNumber . $this->getLabelExtension($config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_TYPE]);
-
-                if (false === @file_put_contents($label, $response->return->skybill)) {
-                    $log->error("L'étiquette n'a pas pu être sauvegardée dans " . $label);
-                } else {
-                    $log->notice("L'étiquette Chronopost a été sauvegardée en tant que " . $response->return->skybillNumber . $this->getLabelExtension($config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_TYPE]));
-                    $chronopostOrder
-                        ->setLabelNumber($response->return->skybillNumber . $this->getLabelExtension($config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_TYPE]))
-                        ->setLabelDirectory($config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR])
-                        ->save();
-
-                    $order->setDeliveryRef($response->return->skybillNumber)->save();
-
-                    /** Change the order status */
-                    switch ($statusOption){
-                        case 'default':
-                            $order->setStatusId($config[ChronopostLabelConst::CHRONOPOST_LABEL_CHANGE_ORDER_STATUS])->save();
-                            break;
-
-                        case 'other':
-                            $order->setStatusId($otherStatus)->save();
-                            break;
-                    }
+                    case 'other':
+                        $order->setStatusId($otherStatus)->save();
+                        break;
                 }
             }
-
-        } catch (\Exception $e) {
-            Tlog::getInstance()->addError("#CHRONOPOST // Error when trying to create the label. Chronopost response : " . $e->getCode() . " - " .  $e->getMessage());
         }
     }
 
