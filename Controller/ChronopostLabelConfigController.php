@@ -11,17 +11,23 @@ namespace ChronopostLabel\Controller;
 
 use ChronopostLabel\ChronopostLabel;
 use ChronopostLabel\Config\ChronopostLabelConst;
+use ChronopostLabel\Form\ChronopostLabelConfigurationForm;
 use Thelia\Controller\Admin\BaseAdminController;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Core\Translation\Translator;
+use Symfony\Component\Routing\Annotation\Route;
 
+/**
+ * @Route("/admin/module/ChronopostLabel", name="chronopost-label")
+ */
 class ChronopostLabelConfigController extends BaseAdminController
 {
     /**
      * Save configuration form - Chronopost informations
      *
      * @return mixed|null|\Symfony\Component\HttpFoundation\Response|\Thelia\Core\HttpFoundation\Response
+     * @Route("/config", name="_config_save", methods="POST")
      */
     public function saveAction()
     {
@@ -29,7 +35,7 @@ class ChronopostLabelConfigController extends BaseAdminController
             return $response;
         }
 
-        $form = $this->createForm("chronopost_label_configuration_form");
+        $form = $this->createForm(ChronopostLabelConfigurationForm::getName());
 
         try {
             $data = $this->validateForm($form)->getData();
@@ -70,6 +76,7 @@ class ChronopostLabelConfigController extends BaseAdminController
      * Save configuration form - Shipper informations
      *
      * @return mixed|null|\Symfony\Component\HttpFoundation\Response|\Thelia\Core\HttpFoundation\Response
+     * @Route("/configShipper", name="_config_shipper_save", methods="POST")
      */
     public function saveActionShipper()
     {
@@ -77,7 +84,7 @@ class ChronopostLabelConfigController extends BaseAdminController
             return $response;
         }
 
-        $form = $this->createForm("chronopost_label_configuration_form");
+        $form = $this->createForm(ChronopostLabelConfigurationForm::getName());
 
         try {
             $data = $this->validateForm($form)->getData();

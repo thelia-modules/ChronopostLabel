@@ -10,6 +10,8 @@ namespace ChronopostLabel\Form;
 
 
 use ChronopostLabel\Config\ChronopostLabelConst;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Thelia\Core\Translation\Translator;
 use Thelia\Form\BaseForm;
 use Thelia\Model\OrderStatus;
@@ -24,14 +26,14 @@ class ChronopostLabelConfigurationForm extends BaseForm
         $statusChoices = [];
         /** @var OrderStatus $status */
         foreach ($OrderStatus as $status){
-            $statusChoices[$status->getId()] = $status->getTitle();
+            $statusChoices[$status->getTitle()] = $status->getId();
         }
 
         $this->formBuilder
 
             ->add(
                 ChronopostLabelConst::CHRONOPOST_LABEL_CODE_CLIENT,
-                "text",
+                TextType::class,
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_CODE_CLIENT],
@@ -45,7 +47,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 ]
             )
             ->add(ChronopostLabelConst::CHRONOPOST_LABEL_PASSWORD,
-                "text",
+                TextType::class,
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_PASSWORD],
@@ -59,7 +61,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 ]
             )
             ->add(ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR,
-                "text",
+                TextType::class,
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR],
@@ -73,7 +75,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 ]
             )
             ->add(ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_TYPE,
-                "choice",
+                ChoiceType::class,
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_TYPE],
@@ -82,15 +84,15 @@ class ChronopostLabelConfigurationForm extends BaseForm
                         'for'           => 'level_field',
                     ],
                     'choices'       => [
-                        "PDF"           => "PDF label with proof of deposit laser printer",
-                        "SPD"           => "PDF label without proof of deposit laser printer",
-                        "THE"           => "PDF label without proof of deposit for thermal printer",
-                        "Z2D"           => "ZPL label with proof of deposit for thermal printer",
+                        "PDF label with proof of deposit laser printer"=> "PDF",
+                        "PDF label without proof of deposit laser printer"=>"SPD",
+                        "PDF label without proof of deposit for thermal printer"=> "THE",
+                        "ZPL label with proof of deposit for thermal printer" => "Z2D",
                     ],
                 ]
             )
             ->add(ChronopostLabelConst::CHRONOPOST_LABEL_CHANGE_ORDER_STATUS,
-                "choice",
+                ChoiceType::class,
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_CHANGE_ORDER_STATUS],
@@ -102,7 +104,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 ]
             )
             ->add(ChronopostLabelConst::CHRONOPOST_LABEL_PRINT_AS_CUSTOMER_STATUS,
-                "choice",
+                ChoiceType::class,
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_PRINT_AS_CUSTOMER_STATUS],
@@ -111,13 +113,13 @@ class ChronopostLabelConfigurationForm extends BaseForm
                         'for'           => 'level_field',
                     ],
                     'choices'       => [
-                        "N"           => "The shipper's one (Default value)",
-                        "Y"           => "The customer's one (Do not use without knowing what it is)",
+                        "The shipper's one (Default value)" => "N",
+                        "The customer's one (Do not use without knowing what it is)" => "Y",
                     ],
                 ]
             )
             ->add(ChronopostLabelConst::CHRONOPOST_LABEL_EXPIRATION_DATE,
-                "text",
+                TextType::class,
                 [
                     'required'      => false,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_EXPIRATION_DATE],
@@ -133,7 +135,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
 
             /** Shipper Informations */
             ->add(ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_NAME1,
-                "text",
+                TextType::class,
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_NAME1],
@@ -147,7 +149,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 ]
             )
             ->add(ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_NAME2,
-                "text",
+                TextType::class,
                 [
                     'required'      => false,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_NAME2],
@@ -161,7 +163,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 ]
             )
             ->add(ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_ADDRESS1,
-                "text",
+                TextType::class,
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_ADDRESS1],
@@ -175,7 +177,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 ]
             )
             ->add(ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_ADDRESS2,
-                "text",
+                TextType::class,
                 [
                     'required'      => false,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_ADDRESS2],
@@ -189,7 +191,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 ]
             )
             ->add(ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_COUNTRY,
-                "text",
+                TextType::class,
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_COUNTRY],
@@ -203,7 +205,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 ]
             )
             ->add(ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_CITY,
-                "text",
+                TextType::class,
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_CITY],
@@ -217,7 +219,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 ]
             )
             ->add(ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_ZIP,
-                "text",
+                TextType::class,
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_ZIP],
@@ -231,7 +233,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 ]
             )
             ->add(ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_CIVILITY,
-                "text",
+                TextType::class,
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_CIVILITY],
@@ -245,7 +247,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 ]
             )
             ->add(ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_CONTACT_NAME,
-                "text",
+                TextType::class,
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_CONTACT_NAME],
@@ -259,7 +261,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 ]
             )
             ->add(ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_PHONE,
-                "text",
+                TextType::class,
                 [
                     'required'      => false,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_PHONE],
@@ -273,7 +275,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 ]
             )
             ->add(ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_MOBILE_PHONE,
-                "text",
+                TextType::class,
                 [
                     'required'      => false,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_MOBILE_PHONE],
@@ -287,7 +289,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 ]
             )
             ->add(ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_MAIL,
-                "text",
+                TextType::class,
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_MAIL],
@@ -305,7 +307,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
         /** BUILDFORM END */
     }
 
-    public function getName()
+    public static function getName()
     {
         return "chronopost_label_configuration_form";
     }

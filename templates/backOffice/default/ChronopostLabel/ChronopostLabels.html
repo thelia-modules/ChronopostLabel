@@ -36,7 +36,7 @@
                 {form_field field="choice_status"}
                 <div class="form-group">
                     <label for="{$label_attr.for}" class="control-label" >{$label}</label>
-                    <select id="{$id}" name="{$name}" class="form-control" onchange="getStatusSelect()">
+                    <select id="{$id|default:null}" name="{$name}" class="form-control" onchange="getStatusSelect()">
                         {foreach $choices as $choice}
                         <option value="{$choice->value}">{$choice->label}</option>
                         {/foreach}
@@ -279,7 +279,7 @@
 {/elseloop}
 
 {* Download zip file if we have the name in the URL parameters *}
-{if $smarty.get.zip}
+{if $smarty.get.zip|default:null}
     <iframe style="width:100%;height:20px;border:none" src="{url path="/admin/module/ChronopostLabel/labels-zip/%hash" hash={$smarty.get.zip}}"></iframe>
 {/if}
 
