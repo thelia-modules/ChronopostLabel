@@ -6,10 +6,13 @@ namespace ChronopostLabel\Controller;
 use ChronopostHomeDelivery\Model\ChronopostHomeDeliveryOrderQuery;
 use ChronopostLabel\ChronopostLabel;
 use ChronopostLabel\Config\ChronopostLabelConst;
+use ChronopostLabel\Form\ChronopostLabelSelectForm;
+use ChronopostLabel\Service\LabelService;
 use ChronopostPickupPoint\Model\ChronopostPickupPointOrderQuery;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Thelia\Controller\Admin\BaseAdminController;
 use Thelia\Core\HttpFoundation\Request;
@@ -24,9 +27,17 @@ use Thelia\Model\OrderAddress;
 use Thelia\Model\OrderAddressQuery;
 use Thelia\Model\OrderQuery;
 use Thelia\Tools\URL;
+use Symfony\Component\Routing\Annotation\Route;
+
+/**
+ * @Route("/admin/module/ChronopostLabel", name="chronopost-label")
+ */
 
 class ChronopostLabelController extends BaseAdminController
 {
+    /**
+     * @Route("/labels", name="_show_labels", methods="GET")
+     */
     public function showLabels()
     {
         $homeDeliveryModule = ModuleQuery::create()->findOneByCode('ChronopostHomeDelivery')->getActivate();
@@ -42,15 +53,18 @@ class ChronopostLabelController extends BaseAdminController
         );
     }
 
-
-    public function saveLabel()
+    /**
+     * @Route("/saveLabel", name="_save_label", methods="GET")
+     */
+    public function saveLabel(RequestStack $requestStack)
     {
         if (null !== $response = $this->checkAuth([AdminResources::MODULE], 'ChronopostLabel', AccessManager::UPDATE)) {
             return $response;
         }
+        $orderId = $requestStack->getCurrentRequest()->get("orderId");
 
-        if(!$chronopostOrder = ChronopostHomeDeliveryOrderQuery::create()->findOneByOrderId($this->getRequest()->get("orderId"))){
-            $chronopostOrder = ChronopostPickupPointOrderQuery::create()->findOneByOrderId($this->getRequest()->get("orderId"));
+        if(!$chronopostOrder = ChronopostHomeDeliveryOrderQuery::create()->findOneByOrderId($orderId)){
+            $chronopostOrder = ChronopostPickupPointOrderQuery::create()->findOneByOrderId($orderId);
         }
 
         $labelNbr = $chronopostOrder->getLabelNumber();
@@ -78,11 +92,9 @@ class ChronopostLabelController extends BaseAdminController
 
 
     /**
-     * @param $orderId
-     * @return mixed|BinaryFileResponse
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @Route("/getLabel/{orderId}", name="_get_label", methods="GET")
      */
-    public function getLabel($orderId)
+    public function getLabel($orderId, LabelService $labelService)
     {
         if (null !== $response = $this->checkAuth(AdminResources::ORDER, [], AccessManager::UPDATE)) {
             return $response;
@@ -93,8 +105,7 @@ class ChronopostLabelController extends BaseAdminController
         }
 
         if(null == $fileName = $chronopostOrder->getLabelNumber()){
-            $service = $this->getContainer()->get('chronopost.generate.label.service');
-            $service->createLabel($chronopostOrder);
+            $labelService->createLabel($chronopostOrder);
             $fileName = $chronopostOrder->getLabelNumber();
         }
 
@@ -109,10 +120,11 @@ class ChronopostLabelController extends BaseAdminController
     /**
      * @return \Symfony\Component\HttpFoundation\Response
      * @throws \Propel\Runtime\Exception\PropelException
+     * @Route("/deleteLabel", name="_delete_label", methods="GET")
      */
-    public function deleteLabel()
+    public function deleteLabel(RequestStack $requestStack)
     {
-        $orderId = $this->getRequest()->get("orderId");
+        $orderId = $requestStack->getCurrentRequest()->get("orderId");
         $order = OrderQuery::create()->findOneById($orderId);
 
         if(!$chronopostOrder = ChronopostHomeDeliveryOrderQuery::create()->findOneByOrderId($orderId)){
@@ -133,31 +145,31 @@ class ChronopostLabelController extends BaseAdminController
         return $this->generateRedirect($this->getRequest()->get("redirect_url"));
     }
 
-    public function generateLabel()
+    /**
+     * @Route("/generateLabel", name="_generate_label", methods="GET")
+     */
+    public function generateLabel(LabelService $labelService, RequestStack $requestStack)
     {
         if (null !== $response = $this->checkAuth(AdminResources::ORDER, [], AccessManager::UPDATE)) {
             return $response;
         }
 
-        $orderId = $this->getRequest()->get("orderId");
+        $orderId = $requestStack->getCurrentRequest()->get("orderId");
 
         if(!$chronopostOrder = ChronopostHomeDeliveryOrderQuery::create()->findOneByOrderId($orderId)){
             $chronopostOrder = ChronopostPickupPointOrderQuery::create()->findOneByOrderId($orderId);
         }
 
-
-        $service = $this->getContainer()->get('chronopost.generate.label.service');
-        $service->createLabel($chronopostOrder);
+        $labelService->createLabel($chronopostOrder);
 
         return $this->generateRedirect('/admin/order/update/'.$orderId);
 
     }
 
-
     /**
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @Route("/generate", name="_generate_labels", methods="POST")
      */
-    public function generateLabels()
+    public function generateLabels(LabelService $labelService)
     {
 
         $chronopostDir = ChronopostLabel::getConfigValue(ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR);
@@ -168,7 +180,7 @@ class ChronopostLabelController extends BaseAdminController
             $fileSystem->mkdir($chronopostTmpDir, 0777);
         }
 
-        $selectLabelForm = $this->createForm('chronopost_label_select_form');
+        $selectLabelForm = $this->createForm(ChronopostLabelSelectForm::getName());
 
         $form = $this->validateForm($selectLabelForm);
 
@@ -188,8 +200,7 @@ class ChronopostLabelController extends BaseAdminController
             }
 
             if(null == $fileName = $chronopostOrder->getLabelNumber()){
-                $service = $this->getContainer()->get('chronopost.generate.label.service');
-                $service->createLabel($chronopostOrder, $statusOption, $otherStatus);
+                $labelService->createLabel($chronopostOrder, $statusOption, $otherStatus);
                 $fileName = $chronopostOrder->getLabelNumber();
             }
 
@@ -238,6 +249,9 @@ class ChronopostLabelController extends BaseAdminController
         closedir($handle);
     }
 
+    /**
+     * @Route("/labels-zip/{base64EncodedZipFilename}", name="_labels_zip", methods="GET")
+     */
     public function getLabelZip($base64EncodedZipFilename)
     {
         $zipFilename = base64_decode($base64EncodedZipFilename);

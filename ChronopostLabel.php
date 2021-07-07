@@ -15,6 +15,7 @@ namespace ChronopostLabel;
 
 use ChronopostLabel\Config\ChronopostLabelConst;
 use Propel\Runtime\Connection\ConnectionInterface;
+use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
 use Symfony\Component\Filesystem\Filesystem;
 use Thelia\Model\ConfigQuery;
 use Thelia\Model\Message;
@@ -30,7 +31,7 @@ class ChronopostLabel extends BaseModule
      * @param ConnectionInterface|null $con
      * @throws \Propel\Runtime\Exception\PropelException
      */
-    public function postActivation(ConnectionInterface $con = null)
+    public function postActivation(ConnectionInterface $con = null): void
     {
         /** Default config values */
         $defaultConfig = [
@@ -70,5 +71,13 @@ class ChronopostLabel extends BaseModule
             $fs->mkdir($dir);
         }
 
+    }
+
+    public static function configureServices(ServicesConfigurator $servicesConfigurator): void
+    {
+        $servicesConfigurator->load(self::getModuleCode().'\\', __DIR__)
+            ->exclude([THELIA_MODULE_DIR . ucfirst(self::getModuleCode()). "/I18n/*"])
+            ->autowire(true)
+            ->autoconfigure(true);
     }
 }

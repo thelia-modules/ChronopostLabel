@@ -23,7 +23,7 @@
         </hook>
     </hooks>
 
-    <services>
+    <!--<services>
         <service id="chronopost.generate.label.service" class="ChronopostLabel\Service\LabelService">
             <argument type="service" id="event_dispatcher"/>
         </service>
@@ -32,5 +32,5 @@
             <argument type="service" id="chronopost.generate.label.service"/>
             <tag name="kernel.event_subscriber"/>
         </service>
-    </services>
+    </services>-->
 </config>

@@ -3,42 +3,6 @@
 <routes xmlns="http://symfony.com/schema/routing"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
-
-    <route id="chronopost.label.config.save" path="/admin/module/ChronopostLabel/config" methods="post">
-        <default key="_controller">ChronopostLabel\Controller\ChronopostLabelConfigController::saveAction</default>
-    </route>
-
-    <route id="chronopost.label.configShipper.save" path="/admin/module/ChronopostLabel/configShipper" methods="post">
-        <default key="_controller">ChronopostLabel\Controller\ChronopostLabelConfigController::saveActionShipper</default>
-    </route>
-
-    <route id="chronopost.label.save.label" path="/admin/module/ChronopostLabel/saveLabel">
-        <default key="_controller">ChronopostLabel\Controller\ChronopostLabelController::saveLabel</default>
-    </route>
-
-    <route id="chronopost.label.get.label" path="/admin/module/ChronopostLabel/getLabel/{orderId}">
-        <default key="_controller">ChronopostLabel\Controller\ChronopostLabelController::getLabel</default>
-    </route>
-
-    <route id="chronopost.label.delete.label" path="/admin/module/ChronopostLabel/deleteLabel">
-        <default key="_controller">ChronopostLabel\Controller\ChronopostLabelController::deleteLabel</default>
-    </route>
-
-    <route id="chronopost.label.labels" path="/admin/module/ChronopostLabel/labels">
-        <default key="_controller">ChronopostLabel\Controller\ChronopostLabelController::showLabels</default>
-    </route>
-
-    <route id="chronopost.label.generate.labels" path="/admin/module/ChronopostLabel/generate">
-        <default key="_controller">ChronopostLabel\Controller\ChronopostLabelController::generateLabels</default>
-    </route>
-
-    <route id="chronopost.label.generate.label" path="/admin/module/ChronopostLabel/generateLabel">
-        <default key="_controller">ChronopostLabel\Controller\ChronopostLabelController::generateLabel</default>
-    </route>
-
-    <route id="chronopost.label.get_zip" path="/admin/module/ChronopostLabel/labels-zip/{base64EncodedZipFilename}">
-        <default key="_controller">ChronopostLabel\Controller\ChronopostLabelController::getLabelZip</default>
-        <requirement key="base64ZipFilePath">[A-Za-z0-9]+</requirement>
-    </route>
+    
 
 </routes>

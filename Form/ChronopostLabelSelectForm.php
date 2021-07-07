@@ -13,6 +13,7 @@ use ChronopostLabel\ChronopostLabel;
 use ChronopostLabel\Config\ChronopostLabelConst;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Thelia\Core\Translation\Translator;
 use Thelia\Form\BaseForm;
 use Thelia\Model\OrderStatus;
@@ -36,7 +37,7 @@ class ChronopostLabelSelectForm extends BaseForm
                 CollectionType::class,
                 [
                     'required' => 'false',
-                    'type' => 'integer',
+                    'entry_type' => IntegerType::class,
                     'allow_add' => true,
                     'allow_delete' => true,
                 ]
@@ -71,8 +72,8 @@ class ChronopostLabelSelectForm extends BaseForm
             );
     }
 
-    public function getName()
+    public static function getName()
     {
-        return 'chronopost-label-select-form';
+        return 'chronopost_label_select_form';
     }
 }
