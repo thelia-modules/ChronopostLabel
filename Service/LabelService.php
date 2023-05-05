@@ -2,9 +2,12 @@
 
 namespace ChronopostLabel\Service;
 
+use ChronopostHomeDelivery\Model\ChronopostHomeDeliveryOrder;
 use ChronopostHomeDelivery\Model\ChronopostHomeDeliveryOrderQuery;
 use ChronopostLabel\Config\ChronopostLabelConst;
+use ChronopostPickupPoint\Model\ChronopostPickupPointOrder;
 use ChronopostPickupPoint\Model\ChronopostPickupPointOrderQuery;
+use Propel\Runtime\Exception\PropelException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Thelia\Core\HttpFoundation\JsonResponse;
 use Thelia\Log\Tlog;
@@ -65,8 +68,10 @@ class LabelService
      * @param $chronopostOrder
      * @param string $statusOption
      * @param null $otherStatus
+     * @param null $weight
      * @return null
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws PropelException
+     * @throws \SoapFault
      */
     public function createLabel ($chronopostOrder, $statusOption = 'default', $otherStatus = null, $weight = null)
     {
@@ -138,7 +143,7 @@ class LabelService
      * @param int $idBox
      * @param int $skybillRank
      * @return mixed
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws PropelException
      */
     public function writeAPIData(Order $order, $chronopostOrder, $weight = null, $idBox = 1, $skybillRank = 1)
     {
@@ -150,7 +155,7 @@ class LabelService
 
         $phone = $customerDeliveryAddress->getCellphone();
 
-        if (null == $phone) {
+        if (null === $phone) {
             $phone = $customerDeliveryAddress->getPhone();
         }
 
@@ -191,25 +196,28 @@ class LabelService
             "shipperPreAlert" => 0, // todo ?
         ];
 
-        /** CUSTOMER INVOICE INFORMATIONS */
+        // Le customer chez Chronopost correspond au client de leur service, à savoir le donneur d'ordre/la société
+        // possédant le site web, et non le client du site. ShipperValue sert dans le cas où un service logistique externe
+        // est utilisé par cette entreprise pour l'envoi de ses colis
+        /** CHRONOPOST CUSTOMER INFORMATIONS */
         $APIData["customerValue"] = [
-            "customerCivility" => $this->getChronopostCivility($customer),
-            "customerName" => $customerInvoiceAddress->getCompany(),
-            "customerName2" => $invoiceCustomerName,
-            "customerAdress1" => $customerInvoiceAddress->getAddress1(),
-            "customerAdress2" => $customerInvoiceAddress->getAddress2(),
-            "customerZipCode" => $customerInvoiceAddress->getZipcode(),
-            "customerCity" => $customerInvoiceAddress->getCity(),
-            "customerCountry" => $this->getCountryIso($customerInvoiceAddress->getCountryId()),
-            "customerContactName" => $invoiceCustomerName,
-            "customerEmail" => $customer->getEmail(),
-            "customerPhone" => $customerInvoiceAddress->getPhone(),
-            "customerMobilePhone" => $customerInvoiceAddress->getCellphone(),
+            "customerCivility" => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_CIVILITY],
+            "customerName" => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_NAME1],
+            "customerName2" => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_NAME2],
+            "customerAdress1" => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_ADDRESS1],
+            "customerAdress2" => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_ADDRESS2],
+            "customerZipCode" => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_ZIP],
+            "customerCity" => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_CITY],
+            "customerCountry" => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_COUNTRY],
+            "customerContactName" => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_CONTACT_NAME],
+            "customerEmail" => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_MAIL],
+            "customerPhone" => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_PHONE],
+            "customerMobilePhone" => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_MOBILE_PHONE],
             "customerPreAlert" => 0,
             "printAsSender" => $config[ChronopostLabelConst::CHRONOPOST_LABEL_PRINT_AS_CUSTOMER_STATUS],
         ];
 
-        /** CUSTOMER DELIVERY INFORMATIONS */
+        /** WEBSITE CUSTOMER DELIVERY INFORMATIONS */
         $APIData["recipientValue"] = [
             "recipientName" => $customerDeliveryAddress->getCompany(),
             "recipientName2" => $deliveryCustomerName,
@@ -229,6 +237,7 @@ class LabelService
         $APIData["refValue"] = [
             "shipperRef" => $order->getRef(),
             "recipientRef" => $customer->getRef(),
+            "idRelais" => $this->getIdRelais($chronopostOrder),
         ];
 
         /** SKYBILL  (LABEL INFORMATIONS) */
@@ -241,7 +250,7 @@ class LabelService
             "shipHour" => (int)date('G'),
             "weight" => $weight,
             "weightUnit" => "KGM",
-            "service" => "0",
+            "service" => $this->getServicebyDeliveryCode($chronopostOrder),
             "objectType" => "MAR", //Todo Change according to product ? Is any product a document instead of a marchandise ?
         ];
 
@@ -265,6 +274,30 @@ class LabelService
         return $APIData;
     }
 
+    /**
+     * @param ChronopostHomeDeliveryOrder|ChronopostPickupPointOrder $chronopostOrder
+     * @return string
+     */
+    private function getServicebyDeliveryCode(ChronopostHomeDeliveryOrder|ChronopostPickupPointOrder $chronopostOrder): string
+    {
+        $specificServiceCodes = ['5X', '5Y'];
+
+        if (in_array($chronopostOrder->getDeliveryCode(), $specificServiceCodes, true)) {
+            return '6';
+        }
+
+        return '0';
+    }
+
+    private function getIdRelais(ChronopostHomeDeliveryOrder|ChronopostPickupPointOrder $chronopostOrder): string
+    {
+        if (method_exists($chronopostOrder, 'getIdRelais')) {
+            $idRelais = $chronopostOrder->getIdRelais();
+            return $idRelais ?? '';
+        }
+
+        return '';
+    }
 
     /**
      * Get the label file extension
@@ -290,7 +323,7 @@ class LabelService
     /**
      * @param Customer $customer
      * @return string
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws PropelException
      */
     private function getChronopostCivility(Customer $customer)
     {
