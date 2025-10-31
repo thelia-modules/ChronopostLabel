@@ -25,7 +25,7 @@ use Thelia\Module\BaseModule;
 class ChronopostLabel extends BaseModule
 {
     /** @var string */
-    const DOMAIN_NAME = 'chronopostLabel';
+    const DOMAIN_NAME = 'chronopostlabel';
 
     /**
      * @param ConnectionInterface|null $con

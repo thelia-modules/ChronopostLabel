@@ -24,11 +24,14 @@ class ChronopostLabelSelectForm extends BaseForm
 
     protected function buildForm()
     {
+        $locale = $this->getRequest()->getSession()->getAdminEditionLang()->getLocale();
+
         $OrderStatus = OrderStatusQuery::create()->find();
         $choices = [];
         /** @var OrderStatus $status */
         foreach ($OrderStatus as $status){
-            $choices[$status->getId()] = $status->getTitle();
+            $status->setLocale($locale);
+            $choices[$status->getTitle()] = $status->getId();
         }
 
         $this->formBuilder
@@ -47,14 +50,14 @@ class ChronopostLabelSelectForm extends BaseForm
                 ChoiceType::class,
                 [
                     'required'      => false,
-                    'label'         => Translator::getInstance()->trans("After label generation change the order status to :"),
+                    'label'         => Translator::getInstance()->trans("After label generation change the order status to :", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'choice_status',
                     ],
                     'choices' => [
-                        'default'   => Translator::getInstance()->trans("The default status in configuration"),
-                        'other'     => Translator::getInstance()->trans("Another status"),
-                        'none'      => Translator::getInstance()->trans("Don't change status")
+                        Translator::getInstance()->trans("The default status in configuration", [], ChronopostLabel::DOMAIN_NAME) =>  'default',
+                        Translator::getInstance()->trans("Another status", [], ChronopostLabel::DOMAIN_NAME) =>  'other',
+                        Translator::getInstance()->trans("Don't change status", [], ChronopostLabel::DOMAIN_NAME) => 'none'
                     ]
                 ]
             )
@@ -63,7 +66,7 @@ class ChronopostLabelSelectForm extends BaseForm
                 ChoiceType::class,
                 [
                     'required'      => false,
-                    'label'         => Translator::getInstance()->trans("Choose a status"),
+                    'label'         => Translator::getInstance()->trans("Choose a status", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'status_select',
                     ],

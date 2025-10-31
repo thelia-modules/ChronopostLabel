@@ -9,6 +9,7 @@
 namespace ChronopostLabel\Form;
 
 
+use ChronopostLabel\ChronopostLabel;
 use ChronopostLabel\Config\ChronopostLabelConst;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -37,12 +38,12 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_CODE_CLIENT],
-                    'label'         => Translator::getInstance()->trans("Chronopost client ID"),
+                    'label'         => Translator::getInstance()->trans("Chronopost client ID", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'title',
                     ],
                     'attr'          => [
-                        'placeholder'   => Translator::getInstance()->trans("Your Chronopost client ID"),
+                        'placeholder'   => Translator::getInstance()->trans("Your Chronopost client ID", [], ChronopostLabel::DOMAIN_NAME),
                     ],
                 ]
             )
@@ -51,12 +52,12 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_PASSWORD],
-                    'label'         => Translator::getInstance()->trans("Chronopost password"),
+                    'label'         => Translator::getInstance()->trans("Chronopost password", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'title',
                     ],
                     'attr'          => [
-                        'placeholder'   => Translator::getInstance()->trans("Your Chronopost password"),
+                        'placeholder'   => Translator::getInstance()->trans("Your Chronopost password", [], ChronopostLabel::DOMAIN_NAME),
                     ],
                 ]
             )
@@ -65,7 +66,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR],
-                    'label'         => Translator::getInstance()->trans("Directory where to save Chronopost labels"),
+                    'label'         => Translator::getInstance()->trans("Directory where to save Chronopost labels", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'title',
                     ],
@@ -79,7 +80,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_TYPE],
-                    'label'         => Translator::getInstance()->trans("Label file type"),
+                    'label'         => Translator::getInstance()->trans("Label file type", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'level_field',
                     ],
@@ -96,7 +97,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_CHANGE_ORDER_STATUS],
-                    'label'         => Translator::getInstance()->trans("Default order status after label generation"),
+                    'label'         => Translator::getInstance()->trans("Default order status after label generation", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'status_select',
                     ],
@@ -108,7 +109,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_PRINT_AS_CUSTOMER_STATUS],
-                    'label'         => Translator::getInstance()->trans("For the sending address, use :"),
+                    'label'         => Translator::getInstance()->trans("For the sending address, use :", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'level_field',
                     ],
@@ -123,12 +124,12 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 [
                     'required'      => false,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_EXPIRATION_DATE],
-                    'label'         => Translator::getInstance()->trans("Number of days before expiration date from the moment the order is in \"Processing\" status"),
+                    'label'         => Translator::getInstance()->trans("Number of days before expiration date from the moment the order is in \"Processing\" status", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'title',
                     ],
                     'attr'          => [
-                        'placeholder'   => Translator::getInstance()->trans("5"),
+                        'placeholder'   => Translator::getInstance()->trans("5", [], ChronopostLabel::DOMAIN_NAME),
                     ],
                 ]
             )
@@ -139,12 +140,12 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_NAME1],
-                    'label'         => Translator::getInstance()->trans("Company name 1"),
+                    'label'         => Translator::getInstance()->trans("Company name 1", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'title',
                     ],
                     'attr'          => [
-                        'placeholder'   => Translator::getInstance()->trans("Dupont & co")
+                        'placeholder'   => Translator::getInstance()->trans("Dupont & co", [], ChronopostLabel::DOMAIN_NAME)
                     ],
                 ]
             )
@@ -153,7 +154,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 [
                     'required'      => false,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_NAME2],
-                    'label'         => Translator::getInstance()->trans("Company name 2"),
+                    'label'         => Translator::getInstance()->trans("Company name 2", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'title',
                     ],
@@ -167,12 +168,12 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_ADDRESS1],
-                    'label'         => Translator::getInstance()->trans("Address 1"),
+                    'label'         => Translator::getInstance()->trans("Address 1", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'title',
                     ],
                     'attr'          => [
-                        'placeholder'   => Translator::getInstance()->trans("Les Gardelles")
+                        'placeholder'   => Translator::getInstance()->trans("Les Gardelles", [], ChronopostLabel::DOMAIN_NAME)
                     ],
                 ]
             )
@@ -181,12 +182,12 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 [
                     'required'      => false,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_ADDRESS2],
-                    'label'         => Translator::getInstance()->trans("Address 2"),
+                    'label'         => Translator::getInstance()->trans("Address 2", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'title',
                     ],
                     'attr'          => [
-                        'placeholder'   => Translator::getInstance()->trans("Route de volvic")
+                        'placeholder'   => Translator::getInstance()->trans("Route de volvic", [], ChronopostLabel::DOMAIN_NAME)
                     ],
                 ]
             )
@@ -195,12 +196,12 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_COUNTRY],
-                    'label'         => Translator::getInstance()->trans("Country (ISO ALPHA-2 format)"),
+                    'label'         => Translator::getInstance()->trans("Country (ISO ALPHA-2 format)", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'title',
                     ],
                     'attr'          => [
-                        'placeholder'   => Translator::getInstance()->trans("FR")
+                        'placeholder'   => Translator::getInstance()->trans("FR", [], ChronopostLabel::DOMAIN_NAME)
                     ],
                 ]
             )
@@ -209,12 +210,12 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_CITY],
-                    'label'         => Translator::getInstance()->trans("City"),
+                    'label'         => Translator::getInstance()->trans("City", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'title',
                     ],
                     'attr'          => [
-                        'placeholder'   => Translator::getInstance()->trans("Paris")
+                        'placeholder'   => Translator::getInstance()->trans("Paris", [], ChronopostLabel::DOMAIN_NAME)
                     ],
                 ]
             )
@@ -223,12 +224,12 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_ZIP],
-                    'label'         => Translator::getInstance()->trans("ZIP code"),
+                    'label'         => Translator::getInstance()->trans("ZIP code", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'title',
                     ],
                     'attr'          => [
-                        'placeholder'   => Translator::getInstance()->trans("93000")
+                        'placeholder'   => Translator::getInstance()->trans("93000", [], ChronopostLabel::DOMAIN_NAME)
                     ],
                 ]
             )
@@ -237,12 +238,12 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_CIVILITY],
-                    'label'         => Translator::getInstance()->trans("Civility"),
+                    'label'         => Translator::getInstance()->trans("Civility", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'title',
                     ],
                     'attr'          => [
-                        'placeholder'   => Translator::getInstance()->trans("E (Madam), L (Miss), M (Mister)")
+                        'placeholder'   => Translator::getInstance()->trans("E (Madam), L (Miss), M (Mister)", [], ChronopostLabel::DOMAIN_NAME)
                     ],
                 ]
             )
@@ -251,12 +252,12 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_CONTACT_NAME],
-                    'label'         => Translator::getInstance()->trans("Contact name"),
+                    'label'         => Translator::getInstance()->trans("Contact name", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'title',
                     ],
                     'attr'          => [
-                        'placeholder'   => Translator::getInstance()->trans("Jean Dupont")
+                        'placeholder'   => Translator::getInstance()->trans("Jean Dupont", [], ChronopostLabel::DOMAIN_NAME)
                     ],
                 ]
             )
@@ -265,12 +266,12 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 [
                     'required'      => false,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_PHONE],
-                    'label'         => Translator::getInstance()->trans("Phone"),
+                    'label'         => Translator::getInstance()->trans("Phone", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'title',
                     ],
                     'attr'          => [
-                        'placeholder'   => Translator::getInstance()->trans("0142080910")
+                        'placeholder'   => Translator::getInstance()->trans("0142080910", [], ChronopostLabel::DOMAIN_NAME)
                     ],
                 ]
             )
@@ -279,12 +280,12 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 [
                     'required'      => false,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_MOBILE_PHONE],
-                    'label'         => Translator::getInstance()->trans("Mobile phone"),
+                    'label'         => Translator::getInstance()->trans("Mobile phone", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'title',
                     ],
                     'attr'          => [
-                        'placeholder'   => Translator::getInstance()->trans("0607080910")
+                        'placeholder'   => Translator::getInstance()->trans("0607080910", [], ChronopostLabel::DOMAIN_NAME)
                     ],
                 ]
             )
@@ -293,12 +294,12 @@ class ChronopostLabelConfigurationForm extends BaseForm
                 [
                     'required'      => true,
                     'data'          => $config[ChronopostLabelConst::CHRONOPOST_LABEL_SHIPPER_MAIL],
-                    'label'         => Translator::getInstance()->trans("E-mail"),
+                    'label'         => Translator::getInstance()->trans("E-mail", [], ChronopostLabel::DOMAIN_NAME),
                     'label_attr'    => [
                         'for'           => 'title',
                     ],
                     'attr'          => [
-                        'placeholder'   => Translator::getInstance()->trans("jeandupont@gmail.com")
+                        'placeholder'   => Translator::getInstance()->trans("jeandupont@gmail.com", [], ChronopostLabel::DOMAIN_NAME)
                     ],
                 ]
             )

@@ -17,14 +17,14 @@
 {if $delivery_module == "ChronopostPickupPoint" || $delivery_module == 'ChronopostHomeDelivery'}
     <br>
     <div class="title title-without-tabs clearfix">
-        {intl l='Chronopost label' d='chronopost.label.bo.default'}
+        {intl l='Chronopost label' d='chronopostlabel.bo.default'}
     </div>
     <table class="table table-striped">
         <tr>
-            <th>{intl l='Label Number' d='chronopost.label.bo.default'}</th>
-            <th>{intl l='Delivery Type' d='chronopost.label.bo.default'}</th>
-            <th>{intl l='Date' d='chronopost.label.bo.default'}</th>
-            <th>{intl l='Destination' d='chronopost.label.bo.default'}</th>
+            <th>{intl l='Label Number' d='chronopostlabel.bo.default'}</th>
+            <th>{intl l='Delivery Type' d='chronopostlabel.bo.default'}</th>
+            <th>{intl l='Date' d='chronopostlabel.bo.default'}</th>
+            <th>{intl l='Destination' d='chronopostlabel.bo.default'}</th>
             <th></th>
         </tr>
         <tr>
@@ -38,17 +38,17 @@
             {/loop}
             <td>
                 <a class="btn btn-primary pull-right {if !$label_nbr} disabled {/if}" href="{url path='/admin/module/ChronopostLabel/saveLabel' labelNbr=$label_nbr orderId=$order_id}">
-                    {intl l='Download' d='chronopost.label.bo.default'}
+                    {intl l='Download' d='chronopostlabel.bo.default'}
                 </a>
                 <a class="btn btn-info pull-right {if !$label_nbr} disabled {/if}" href={url path="/admin/module/ChronopostLabel/getLabel/{$order_id}"}>
-                    {intl l='View' d='chronopost.label.bo.default'}
+                    {intl l='View' d='chronopostlabel.bo.default'}
                 </a>
                 <a class="btn btn-danger pull-right {if !$label_nbr} disabled {/if}" href="{url path='/admin/module/ChronopostLabel/deleteLabel' orderId=$order_id redirect_url="/admin/order/update/$order_id"} ">
-                    {intl l='Delete' d='chronopost.label.bo.default'}
+                    {intl l='Delete' d='chronopostlabel.bo.default'}
                 </a>
                 {if !$label_nbr}
                     <a class="btn btn-primary pull-right" href={url path="/admin/module/ChronopostLabel/generateLabel" orderId=$order_id}>
-                        {intl l='Generate' d='chronopost.label.bo.default'}
+                        {intl l='Generate' d='chronopostlabel.bo.default'}
                     </a>
                 {/if}
             </td>

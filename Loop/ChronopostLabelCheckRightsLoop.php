@@ -3,6 +3,7 @@
 namespace ChronopostLabel\Loop;
 
 
+use ChronopostLabel\ChronopostLabel;
 use ChronopostLabel\Config\ChronopostLabelConst;
 use Thelia\Core\Template\Element\ArraySearchLoopInterface;
 use Thelia\Core\Template\Element\BaseLoop;
@@ -29,10 +30,10 @@ class ChronopostLabelCheckRightsLoop extends BaseLoop implements ArraySearchLoop
         $ret = array();
         $config = ChronopostLabelConst::getConfig();
         if (!is_writable($config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR])) {
-            $ret[] = array("ERRMES"=>Translator::getInstance()->trans("Can't write in the label directory"), "ERRFILE"=>$config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR]);
+            $ret[] = array("ERRMES"=>Translator::getInstance()->trans("Can't write in the label directory", [], ChronopostLabel::DOMAIN_NAME), "ERRFILE"=>$config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR]);
         }
         if (!is_readable($config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR])) {
-            $ret[] = array("ERRMES"=>Translator::getInstance()->trans("Can't read the label directory"), "ERRFILE"=>$config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR]);
+            $ret[] = array("ERRMES"=>Translator::getInstance()->trans("Can't read the label directory", [], ChronopostLabel::DOMAIN_NAME), "ERRFILE"=>$config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR]);
         }
 
         return $ret;

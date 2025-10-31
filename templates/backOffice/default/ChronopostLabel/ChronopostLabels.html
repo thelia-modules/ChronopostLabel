@@ -12,7 +12,7 @@
     <!-- Errors -->
     {loop name="checkrights.chronopost" type="chronopost.label.check.rights"}
         <div class="alert alert-danger">
-            <p>{$ERRMES} {$ERRFILE} | {intl l="Please change the access rights" d='chronopost.label.bo.default'}.</p>
+            <p>{$ERRMES} {$ERRFILE} | {intl l="Please change the access rights" d='chronopostlabel.bo.default'}.</p>
         </div>
     {/loop}
 </div>
@@ -55,7 +55,7 @@
 
     <div class="general-block-decorator col-md-12 form-horizontal">
         <div class="row">
-            <input type="submit" class="btn btn-block btn-info" value="{intl l="Generate selected labels" d="ChronopostLabel.bo.default"}">
+            <input type="submit" class="btn btn-block btn-info" value="{intl l="Generate selected labels" d='chronopostlabel.bo.default'}">
         </div>
     </div>
 
@@ -64,7 +64,7 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="col-md-12 title title-without-tabs">
-                    {intl l='Home Delivery' d='chronopost.label.bo.default'}
+                    {intl l='Home Delivery' d='chronopostlabel.bo.default'}
                 </div>
                 <div class="table-responsive">
                     <table class="table table-condensed">
@@ -76,14 +76,14 @@
                                         <input type="checkbox" id="head-home-delivery-check" class="form-control" onclick="checkAll('home-delivery')">
                                     </div>
                                 </th>
-                                <th class="text-center">{intl l='Reference' d='chronopost.label.bo.default'}</th>
-                                <th class="text-center">{intl l='Status' d='chronopost.label.bo.default'}</th>
-                                <th class="text-center">{intl l="Delivery Type" d='chronopost.label.bo.default'}</th>
-                                <th class="text-center">{intl l="Date" d='chronopost.label.bo.default'}</th>
-                                <th class="text-center">{intl l="Total Amount" d='chronopost.label.bo.default'}</th>
-                                <th class="text-center">{intl l='Destination' d='chronopost.label.bo.default'}</th>
-                                <th class="text-center">{intl l='Label Number' d='chronopost.label.bo.default'}</th>
-                                <th class="actions text-center">{intl l='Action' d='chronopost.label.bo.default'}</th>
+                                <th class="text-center">{intl l='Reference' d='chronopostlabel.bo.default'}</th>
+                                <th class="text-center">{intl l='Status' d='chronopostlabel.bo.default'}</th>
+                                <th class="text-center">{intl l="Delivery Type" d='chronopostlabel.bo.default'}</th>
+                                <th class="text-center">{intl l="Date" d='chronopostlabel.bo.default'}</th>
+                                <th class="text-center">{intl l="Total Amount" d='chronopostlabel.bo.default'}</th>
+                                <th class="text-center">{intl l='Destination' d='chronopostlabel.bo.default'}</th>
+                                <th class="text-center">{intl l='Label Number' d='chronopostlabel.bo.default'}</th>
+                                <th class="actions text-center">{intl l='Action' d='chronopostlabel.bo.default'}</th>
                             </tr>
                             </thead>
                             {loop type="chronopost.label.export.home.delivery.labels" name="export_home_directory_label" order_status='1,2,3'}
@@ -122,12 +122,12 @@
                                         <td class="actions text-center">
                                             {if $label_nbr}
                                                 <a class="btn btn-default btn-xs js-export-download"
-                                                   title="{intl l='Download this label' d='chronopost.label.bo.default'}"
+                                                   title="{intl l='Download this label' d='chronopostlabel.bo.default'}"
                                                    href="{url path="/admin/module/ChronopostLabel/saveLabel" orderId=$ID}">
                                                     <span class="glyphicon glyphicon-floppy-disk"></span>
                                                 </a>
                                                 <a class="btn btn-danger btn-xs"
-                                                   title="{intl l='Delete this label' d='chronopost.label.bo.default'}"
+                                                   title="{intl l='Delete this label' d='chronopostlabel.bo.default'}"
                                                    href="{url path='/admin/module/ChronopostLabel/deleteLabel' orderId=$ID redirect_url="/admin/module/ChronopostLabel/labels"}">
                                                     <span class="glyphicon glyphicon-trash"></span>
                                                 </a>
@@ -150,7 +150,7 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="col-md-12 title title-without-tabs">
-                    {intl l='Pickup Point' d='chronopost.label.bo.default'}
+                    {intl l='Pickup Point' d='chronopostlabel.bo.default'}
                 </div>
                 <div class="table-responsive">
                     <table class="table table-striped table-condensed">
@@ -162,14 +162,14 @@
                                         <input type="checkbox" id="head-pickup-point-check" class="form-control" onclick="checkAll('pickup-point')">
                                     </div>
                                 </th>
-                                <th class="text-center">{intl l='Reference' d='chronopost.label.bo.default'}</th>
-                                <th class="text-center">{intl l='Status' d='chronopost.label.bo.default'}</th>
-                                <th class="text-center">{intl l="Delivery Type" d='chronopost.label.bo.default'}</th>
-                                <th class="text-center">{intl l="Date" d='chronopost.label.bo.default'}</th>
-                                <th class="text-center">{intl l="Total Amount" d='chronopost.label.bo.default'}</th>
-                                <th class="text-center">{intl l='Destination' d='chronopost.label.bo.default'}</th>
-                                <th class="text-center">{intl l='Label Number' d='chronopost.label.bo.default'}</th>
-                                <th class="actions text-center">{intl l='Action' d='chronopost.label.bo.default'}</th>
+                                <th class="text-center">{intl l='Reference' d='chronopostlabel.bo.default'}</th>
+                                <th class="text-center">{intl l='Status' d='chronopostlabel.bo.default'}</th>
+                                <th class="text-center">{intl l="Delivery Type" d='chronopostlabel.bo.default'}</th>
+                                <th class="text-center">{intl l="Date" d='chronopostlabel.bo.default'}</th>
+                                <th class="text-center">{intl l="Total Amount" d='chronopostlabel.bo.default'}</th>
+                                <th class="text-center">{intl l='Destination' d='chronopostlabel.bo.default'}</th>
+                                <th class="text-center">{intl l='Label Number' d='chronopostlabel.bo.default'}</th>
+                                <th class="actions text-center">{intl l='Action' d='chronopostlabel.bo.default'}</th>
                             </tr>
                             </thead>
                             {loop type="chronopost.label.export.pickup.point.labels" name="export_pickup_point_label" order_status='1,2,3'}
@@ -208,12 +208,12 @@
                                         <td class="actions text-center">
                                             {if $label_nbr}
                                                 <a class="btn btn-default btn-xs js-export-download"
-                                                   title="{intl l='Download this label' d='chronopost.label.bo.default'}"
+                                                   title="{intl l='Download this label' d='chronopostlabel.bo.default'}"
                                                    href="{url path="/admin/module/ChronopostLabel/saveLabel" orderId=$ID}">
                                                     <span class="glyphicon glyphicon-floppy-disk"></span>
                                                 </a>
                                                 <a class="btn btn-danger btn-xs"
-                                                   title="{intl l='Delete this label' d='chronopost.label.bo.default'}"
+                                                   title="{intl l='Delete this label' d='chronopostlabel.bo.default'}"
                                                    href="{url path='/admin/module/ChronopostLabel/deleteLabel' orderId=$ID redirect_url="/admin/module/ChronopostLabel/labels"}">
                                                     <span class="glyphicon glyphicon-trash"></span>
                                                 </a>
@@ -233,7 +233,7 @@
 
     <div class="general-block-decorator col-md-12 form-horizontal">
         <div class="row">
-            <input type="submit" class="btn btn-block btn-info" value="{intl l="Generate selected labels" d="ChronopostLabel.bo.default"}">
+            <input type="submit" class="btn btn-block btn-info" value="{intl l="Generate selected labels" d='chronopostlabel.bo.default'}">
         </div>
     </div>
 
@@ -245,7 +245,7 @@
 
     dialog_id       = "chronopost_home_delivery_dialog"
     dialog_body     = ""
-    dialog_title    = {intl d='chronopost.label.bo.default' l="Message"}
+    dialog_title    = {intl d='chronopostlabel.bo.default' l="Message"}
     }
 
     {* JS Templates *}
@@ -263,12 +263,12 @@
             <th class="col-md-1">
                 <div class="btn-group">
                     {loop type="auth" name="can_change" role="ADMIN" module="chronopost" access="UPDATE"}
-                        <a class="btn btn-default btn-xs js-slice-save" title="{intl d='chronopost.label.bo.default' l='Save this price slice'}">
+                        <a class="btn btn-default btn-xs js-slice-save" title="{intl d='chronopostlabel.bo.default' l='Save this price slice'}">
                             <span class="glyphicon glyphicon-floppy-disk"></span>
                         </a>
                     {/loop}
                     {loop type="auth" name="can_change" role="ADMIN" module="chronopost" access="DELETE"}
-                        <a class="btn btn-default btn-xs js-slice-delete" title="{intl d='chronopost.label.bo.default' l='Delete this price slice'}" data-id="<%=id %>">
+                        <a class="btn btn-default btn-xs js-slice-delete" title="{intl d='chronopostlabel.bo.default' l='Delete this price slice'}" data-id="<%=id %>">
                             <span class="glyphicon glyphicon-trash"></span>
                         </a>
                     {/loop}
