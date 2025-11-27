@@ -6,6 +6,7 @@ namespace ChronopostLabel\Loop;
 use ChronopostHomeDelivery\Model\ChronopostHomeDeliveryOrder;
 use ChronopostHomeDelivery\Model\ChronopostHomeDeliveryOrderQuery;
 use Propel\Runtime\ActiveQuery\Criteria;
+use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Thelia\Core\Template\Element\BaseLoop;
 use Thelia\Core\Template\Element\LoopResult;
 use Thelia\Core\Template\Element\LoopResultRow;
@@ -32,7 +33,7 @@ class ChronopostLabelHomeDeliveryExportLoop extends BaseLoop implements PropelSe
     /**
      * @return ArgumentCollection
      */
-    protected function getArgDefinitions()
+    protected function getArgDefinitions(): ArgumentCollection
     {
         return new ArgumentCollection(
             Argument::createAnyTypeArgument('order_ref'),
@@ -46,10 +47,10 @@ class ChronopostLabelHomeDeliveryExportLoop extends BaseLoop implements PropelSe
     }
 
     /**
-     * @return ChronopostHomeDeliveryOrderQuery|\Propel\Runtime\ActiveQuery\ModelCriteria
+     * @return ChronopostHomeDeliveryOrderQuery|ModelCriteria
      * @throws \Propel\Runtime\Exception\PropelException
      */
-    public function buildModelCriteria()
+    public function buildModelCriteria(): ModelCriteria
     {
         $orderRef       = $this->getOrderRef();
         $orderId        = $this->getOrderId();
@@ -104,7 +105,7 @@ class ChronopostLabelHomeDeliveryExportLoop extends BaseLoop implements PropelSe
      * @param LoopResult $loopResult
      * @return LoopResult
      */
-    public function parseResults(LoopResult $loopResult)
+    public function parseResults(LoopResult $loopResult): LoopResult
     {
         /** @var ChronopostHomeDeliveryOrder $chronopostOrder */
         foreach ($loopResult->getResultDataCollection() as $chronopostOrder) {

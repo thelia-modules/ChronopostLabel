@@ -59,7 +59,7 @@ class ChronopostLabel extends BaseModule
 
         /** Set the default config values in the DB table if it doesn't exists yet */
         foreach ($defaultConfig as $key => $value) {
-            if (null === self::getConfigValue($key, null)) {
+            if ('' === self::getConfigValue($key, '')) { // TODO : reset default value to null when thelia is fixed (now it's impossible to set default value to null)
                 self::setConfigValue($key, $value);
             }
         }

@@ -22,7 +22,7 @@ use Thelia\Model\OrderStatusQuery;
 class ChronopostLabelSelectForm extends BaseForm
 {
 
-    protected function buildForm()
+    protected function buildForm(): void
     {
         $locale = $this->getRequest()->getSession()->getAdminEditionLang()->getLocale();
 
@@ -75,7 +75,7 @@ class ChronopostLabelSelectForm extends BaseForm
             );
     }
 
-    public static function getName()
+    public static function getName(): string
     {
         return 'chronopost_label_select_form';
     }

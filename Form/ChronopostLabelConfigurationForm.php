@@ -20,7 +20,7 @@ use Thelia\Model\OrderStatusQuery;
 
 class ChronopostLabelConfigurationForm extends BaseForm
 {
-    protected function buildForm()
+    protected function buildForm(): void
     {
         $config = ChronopostLabelConst::getConfig();
         $OrderStatus = OrderStatusQuery::create()->find();
@@ -308,7 +308,7 @@ class ChronopostLabelConfigurationForm extends BaseForm
         /** BUILDFORM END */
     }
 
-    public static function getName()
+    public static function getName(): string
     {
         return "chronopost_label_configuration_form";
     }

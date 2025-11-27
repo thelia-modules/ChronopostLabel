@@ -17,7 +17,7 @@ class ChronopostLabelCheckRightsLoop extends BaseLoop implements ArraySearchLoop
     /**
      * @return ArgumentCollection
      */
-    protected function getArgDefinitions()
+    protected function getArgDefinitions(): ArgumentCollection
     {
         return new ArgumentCollection();
     }
@@ -25,7 +25,7 @@ class ChronopostLabelCheckRightsLoop extends BaseLoop implements ArraySearchLoop
     /**
      * @return array
      */
-    public function buildArray()
+    public function buildArray(): array
     {
         $ret = array();
         $config = ChronopostLabelConst::getConfig();
@@ -43,7 +43,7 @@ class ChronopostLabelCheckRightsLoop extends BaseLoop implements ArraySearchLoop
      * @param LoopResult $loopResult
      * @return LoopResult
      */
-    public function parseResults(LoopResult $loopResult)
+    public function parseResults(LoopResult $loopResult): LoopResult
     {
         foreach ($loopResult->getResultDataCollection() as $arr) {
             $loopResultRow = new LoopResultRow();
