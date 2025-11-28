@@ -1,12 +1,12 @@
 {if $delivery_module == 'ChronopostHomeDelivery'}
-    {loop type='chronopost.label.export.home.delivery.labels' name='order_home_directory_label' order_id=$order_id}
+    {loop type='chronopost_label_home_delivery_export_loop' name='order_home_directory_label' order_id=$order_id}
         {assign "label_nbr" $LABEL_NBR}
         {assign "delivery_type" $DELIVERY_TYPE}
     {/loop}
 {/if}
 
 {if $delivery_module == "ChronopostPickupPoint"}
-    {loop type='chronopost.label.export.pickup.point.labels' name='order_pickup_point_label' order_id=$order_id}
+    {loop type='chronopost_label_pickup_point_export_loop' name='order_pickup_point_label' order_id=$order_id}
         {assign "label_nbr" $LABEL_NBR}
         {assign "delivery_type" $DELIVERY_TYPE}
     {/loop}
