@@ -135,15 +135,16 @@ class ChronopostLabelController extends BaseAdminController
         }
         if(file_exists($chronopostOrder->getLabelDirectory() . $chronopostOrder->getLabelNumber())){
             unlink($chronopostOrder->getLabelDirectory() . $chronopostOrder->getLabelNumber());
-            $chronopostOrder
-                ->setLabelDirectory(null)
-                ->setLabelNumber(null)
-                ->save();
 
-            $order
-                ->setDeliveryRef(null)
-                ->save();
         }
+        $chronopostOrder
+            ->setLabelDirectory(null)
+            ->setLabelNumber(null)
+            ->save();
+
+        $order
+            ->setDeliveryRef(null)
+            ->save();
 
         return $this->generateRedirect($this->getRequest()->get("redirect_url"));
     }
@@ -203,12 +204,9 @@ class ChronopostLabelController extends BaseAdminController
 
             return $this->generateRedirect('/admin/order/update/' . $orderId);
 
-        } catch (FormValidationException $e) {
-            $this->createStandardFormValidationErrorMessage($e);
-            return $this->generateRedirect('/admin/order/update/' . $requestStack->getCurrentRequest()?->get('order_id'));
         } catch (\Exception $e) {
-            $this->createStandardFormValidationErrorMessage(new FormValidationException($e->getMessage()));
-            return $this->generateRedirect('/admin/order/update/' . $requestStack->getCurrentRequest()?->get('order_id'));
+            $params['update_status_error_message'] = $e->getMessage();
+            return $this->generateRedirectFromRoute('admin.order.update.view', $params, ['order_id' => $orderId]);
         }
     }
 
