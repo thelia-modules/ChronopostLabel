@@ -9,6 +9,8 @@ use ChronopostPickupPoint\Model\ChronopostPickupPointOrder;
 use ChronopostPickupPoint\Model\ChronopostPickupPointOrderQuery;
 use Propel\Runtime\Exception\PropelException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Thelia\Core\Event\Order\OrderEvent;
+use Thelia\Core\Event\TheliaEvents;
 use Thelia\Core\HttpFoundation\JsonResponse;
 use Thelia\Log\Tlog;
 use Thelia\Model\CountryQuery;
@@ -17,6 +19,7 @@ use Thelia\Model\Order;
 use Thelia\Model\OrderAddress;
 use Thelia\Model\OrderAddressQuery;
 use Thelia\Model\OrderQuery;
+use Thelia\Model\OrderStatusQuery;
 use Thelia\Tools\URL;
 
 class LabelService
@@ -122,7 +125,7 @@ class LabelService
                 $log->error("L'étiquette n'a pas pu être sauvegardée dans " . $label);
             } else {
                 @chmod($label, 0664);
-                
+
                 $log->notice("L'étiquette Chronopost a été sauvegardée en tant que " . $labelFilename);
                 $chronopostOrder
                     ->setLabelNumber($labelFilename)
@@ -131,19 +134,7 @@ class LabelService
 
                 $order->setDeliveryRef($response->return->skybillNumber)->save();
 
-                /** Change the order status */
-                switch ($statusOption){
-                    case 'default':
-                        $order->setStatusId($config[ChronopostLabelConst::CHRONOPOST_LABEL_CHANGE_ORDER_STATUS])->save();
-                        break;
-
-                    case 'other':
-                        if ($otherStatus !== null) {
-                            $order->setStatusId($otherStatus)->save();
-                        }
-
-                        break;
-                }
+                $this->determineOrderStatus($config, $statusOption, $otherStatus, $order);
             }
             umask($oldUmask);
         }
@@ -375,6 +366,39 @@ class LabelService
     private function getContactName(OrderAddress $address)
     {
         return $address->getFirstname() . " " . $address->getLastname();
+    }
+
+    /**
+     * @throws PropelException
+     */
+    private function determineOrderStatus(
+        array $config,
+        ?string $statusOption,
+        ?int $otherStatus,
+        Order $order
+    ): void
+    {
+        $statusId = null;
+
+        if ($statusOption === 'default') {
+            $statusId = (int) $config[ChronopostLabelConst::CHRONOPOST_LABEL_CHANGE_ORDER_STATUS];
+        } elseif ($statusOption === 'other' && $otherStatus !== null) {
+            $statusId = $otherStatus;
+        }
+        if ($statusId === null) {
+            return;
+        }
+
+        $order->setOrderStatus(
+            OrderStatusQuery::create()->findOneById($statusId)
+        );
+
+        $this->dispatcher->dispatch(
+            (new OrderEvent($order))->setStatus($statusId),
+            TheliaEvents::ORDER_UPDATE_STATUS
+        );
+
+        $order->save();
     }
 
 }
