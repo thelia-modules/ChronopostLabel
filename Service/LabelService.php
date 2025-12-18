@@ -73,28 +73,28 @@ class LabelService
      * @throws PropelException
      * @throws \SoapFault
      */
-    public function createLabel ($chronopostOrder, $statusOption = 'default', $otherStatus = null, $weight = null)
+    public function createLabel($chronopostOrder, $statusOption = 'default', $otherStatus = null, $weight = null): void
     {
         $order = OrderQuery::create()->findOneById($chronopostOrder->getOrderId());
+        if (null === $order) {
+            throw new \Exception("Order not found for Chronopost order ID " . $chronopostOrder->getId());
+        }
 
         $APIDatas = [];
 
         $reference = $order->getRef();
         $config = ChronopostLabelConst::getConfig();
 
-
-        $log = Tlog::getNewInstance();
-        $log->setDestinations("\\Thelia\\Log\\Destination\\TlogDestinationFile");
-        $log->setConfig("\\Thelia\\Log\\Destination\\TlogDestinationFile", 0, THELIA_ROOT . "log" . DS . "log-chronopost-label.txt");
-
+        $log = Tlog::getInstance();
         $log->notice("#CHRONOPOST // L'étiquette de la commande " . $reference . " est en cours de création.");
 
         if ($chronopostOrder) {
             $weight = ($weight == null) ? $order->getWeight() : $weight;
+
             $APIDatas[] = $this->writeAPIData($order, $chronopostOrder, $weight, 1, 1);
         } else {
             $log->error("#CHRONOPOST // Impossible de trouver la commande " . $reference . " dans la table des commandes Chronopost.");
-            return null;
+            return;
         }
 
         /** Send order informations to the Chronopost API */
@@ -104,20 +104,29 @@ class LabelService
 
             $response = $soapClient->__soapCall('shippingV3', [$APIData]);
 
-            if (0 != $response->return->errorCode) {
+            if (0 !== (int) $response->return->errorCode) {
                 throw new \Exception($response->return->errorMessage, $response->return->errorCode);
             }
 
             /** Create the label accordingly */
-            $label = $config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR] . $response->return->skybillNumber . $this->getLabelExtension($config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_TYPE]);
+            $labelDir = $config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR];
+            $labelFilename = $response->return->skybillNumber . $this->getLabelExtension($config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_TYPE]);
+            $label = $labelDir . $labelFilename;
 
+            $oldUmask = umask(0002);
+
+            if (!is_dir($labelDir) && !mkdir($labelDir, 0775, true) && !is_dir($labelDir)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $labelDir));
+            }
             if (false === @file_put_contents($label, $response->return->skybill)) {
                 $log->error("L'étiquette n'a pas pu être sauvegardée dans " . $label);
             } else {
-                $log->notice("L'étiquette Chronopost a été sauvegardée en tant que " . $response->return->skybillNumber . $this->getLabelExtension($config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_TYPE]));
+                @chmod($label, 0664);
+                
+                $log->notice("L'étiquette Chronopost a été sauvegardée en tant que " . $labelFilename);
                 $chronopostOrder
-                    ->setLabelNumber($response->return->skybillNumber . $this->getLabelExtension($config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_TYPE]))
-                    ->setLabelDirectory($config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR])
+                    ->setLabelNumber($labelFilename)
+                    ->setLabelDirectory($labelDir)
                     ->save();
 
                 $order->setDeliveryRef($response->return->skybillNumber)->save();
@@ -129,10 +138,14 @@ class LabelService
                         break;
 
                     case 'other':
-                        $order->setStatusId($otherStatus)->save();
+                        if ($otherStatus !== null) {
+                            $order->setStatusId($otherStatus)->save();
+                        }
+
                         break;
                 }
             }
+            umask($oldUmask);
         }
     }
 

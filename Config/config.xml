@@ -13,6 +13,7 @@
     <forms>
         <form name="chronopost_label_configuration_form" class="ChronopostLabel\Form\ChronopostLabelConfigurationForm" />
         <form name="chronopost_label_select_form" class="ChronopostLabel\Form\ChronopostLabelSelectForm" />
+        <form name="chronopostlabel_form_chronopost_label_create_form" class="ChronopostLabel\Form\ChronopostLabelCreateForm" />
     </forms>
 
     <hooks>

@@ -3,6 +3,8 @@
   "license": "LGPL-3.0+",
   "type": "thelia-module",
   "require": {
+    "ext-soap": "*",
+    "ext-zip": "*",
     "thelia/installer": "~1.1"
   },
   "extra": {
