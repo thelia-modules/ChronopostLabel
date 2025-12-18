@@ -1,57 +1,114 @@
 {if $delivery_module == 'ChronopostHomeDelivery'}
-    {loop type='chronopost.label.export.home.delivery.labels' name='order_home_directory_label' order_id=$order_id}
-        {assign "label_nbr" $LABEL_NBR}
-        {assign "delivery_type" $DELIVERY_TYPE}
-    {/loop}
+{loop type='chronopost.label.export.home.delivery.labels' name='order_home_directory_label' order_id=$order_id}
+{assign "label_nbr" $LABEL_NBR}
+{assign "delivery_type" $DELIVERY_TYPE}
+{/loop}
 {/if}
 
 {if $delivery_module == "ChronopostPickupPoint"}
-    {loop type='chronopost.label.export.pickup.point.labels' name='order_pickup_point_label' order_id=$order_id}
-        {assign "label_nbr" $LABEL_NBR}
-        {assign "delivery_type" $DELIVERY_TYPE}
-    {/loop}
+{loop type='chronopost.label.export.pickup.point.labels' name='order_pickup_point_label' order_id=$order_id}
+{assign "label_nbr" $LABEL_NBR}
+{assign "delivery_type" $DELIVERY_TYPE}
+{/loop}
 {/if}
 
-
-
 {if $delivery_module == "ChronopostPickupPoint" || $delivery_module == 'ChronopostHomeDelivery'}
-    <br>
-    <div class="title title-without-tabs clearfix">
-        {intl l='Chronopost label' d='chronopostlabel.bo.default'}
+<br>
+<div class="title title-without-tabs clearfix">
+    {intl l='Chronopost label' d='chronopostlabel.bo.default'}
+</div>
+<table class="table table-striped">
+    <tr>
+        <th>{intl l='Label Number' d='chronopostlabel.bo.default'}</th>
+        <th>{intl l='Delivery Type' d='chronopostlabel.bo.default'}</th>
+        <th>{intl l='Date' d='chronopostlabel.bo.default'}</th>
+        <th>{intl l='Destination' d='chronopostlabel.bo.default'}</th>
+        <th></th>
+    </tr>
+    <tr>
+        <td>{$label_nbr}</td>
+        <td>{$delivery_type}</td>
+        {loop type="order" name="get-order-date" id=$order_id customer="*" backend_context="true"}
+        {assign "order_weight" $WEIGHT}
+        <td>{format_date date=$CREATE_DATE}</td>
+        {loop type="order_address" name="destination_loop" id=$DELIVERY_ADDRESS}
+        <td>{$ADDRESS1} {$CITY} {$ZIPCODE}</td>
+        {/loop}
+        {/loop}
+        <td>
+            <a class="btn btn-primary pull-right {if !$label_nbr} disabled {/if}" href="{url path='/admin/module/ChronopostLabel/saveLabel' labelNbr=$label_nbr orderId=$order_id}">
+                {intl l='Download' d='chronopostlabel.bo.default'}
+            </a>
+            <a class="btn btn-info pull-right {if !$label_nbr} disabled {/if}" href={url path="/admin/module/ChronopostLabel/getLabel/{$order_id}"} target="_blank">
+                {intl l='View' d='chronopostlabel.bo.default'}
+            </a>
+            <a class="btn btn-danger pull-right {if !$label_nbr} disabled {/if}" href="{url path='/admin/module/ChronopostLabel/deleteLabel' orderId=$order_id redirect_url="/admin/order/update/$order_id"} ">
+            {intl l='Delete' d='chronopostlabel.bo.default'}
+            </a>
+            {if !$label_nbr}
+            <a class="btn btn-primary pull-right" href="#chronopostlabel-label-dialog-form" data-toggle="modal">
+                {intl l='Generate' d='chronopostlabel.bo.default'}
+            </a>
+            {/if}
+        </td>
+    </tr>
+</table>
+
+{* Modale de création d'étiquette *}
+{if !$label_nbr}
+<div id="chronopostlabel-label-dialog-form" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #f39c12; color: white;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">{intl l='ETIQUETTES CHRONOPOST' d='chronopostlabel.bo.default'}</h4>
+            </div>
+
+            {form name="chronopostlabel_form_chronopost_label_create_form"}
+            <form action="{url path='/admin/module/ChronopostLabel/generateLabel'}" method="post">
+                {form_hidden_fields}
+                <input type="hidden" name="{$form->getName()}[order_id]" value="{$order_id}">
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="control-label">{intl l='Statut de commande après la création de l\'étiquette' d='chronopostlabel.bo.default'}</label>
+                        <div class="radio">
+                            <label>
+                                <input type="radio" name="{$form->getName()}[new_status]" value="no_change" checked>
+                                {intl l='Ne pas modifier' d='chronopostlabel.bo.default'}
+                            </label>
+                        </div>
+                        {loop type="order-status" name="status-list"}
+                        <div class="radio">
+                            <label>
+                                <input type="radio" name="{$form->getName()}[new_status]" value="{$ID}">
+                                {intl l='Changer en "%status"' status=$TITLE d='chronopostlabel.bo.default'}
+                            </label>
+                        </div>
+                        {/loop}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label" for="chronopost-weight">{intl l='Poids (kg)' d='chronopostlabel.bo.default'} *</label>
+                        <div class="input-group">
+                            <input type="number" name="{$form->getName()}[weight]" id="chronopost-weight" class="form-control" step="0.01" min="0.01" value="{$order_weight|default:0.1}" required>
+                            <span class="input-group-addon">kg</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                        <i class="glyphicon glyphicon-remove"></i> {intl l='Annuler' d='chronopostlabel.bo.default'}
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="glyphicon glyphicon-ok"></i> {intl l='Créer' d='chronopostlabel.bo.default'}
+                    </button>
+                </div>
+            </form>
+            {/form}
+        </div>
     </div>
-    <table class="table table-striped">
-        <tr>
-            <th>{intl l='Label Number' d='chronopostlabel.bo.default'}</th>
-            <th>{intl l='Delivery Type' d='chronopostlabel.bo.default'}</th>
-            <th>{intl l='Date' d='chronopostlabel.bo.default'}</th>
-            <th>{intl l='Destination' d='chronopostlabel.bo.default'}</th>
-            <th></th>
-        </tr>
-        <tr>
-            <td>{$label_nbr}</td>
-            <td>{$delivery_type}</td>
-            {loop type="order" name="get-order-date" id=$order_id customer="*" backend_context="true"}
-            <td>{format_date date=$CREATE_DATE}</td>
-                {loop type="order_address" name="destination_loop" id=$DELIVERY_ADDRESS}
-                    <td>{$ADDRESS1} {$CITY} {$ZIPCODE}</td>
-                {/loop}
-            {/loop}
-            <td>
-                <a class="btn btn-primary pull-right {if !$label_nbr} disabled {/if}" href="{url path='/admin/module/ChronopostLabel/saveLabel' labelNbr=$label_nbr orderId=$order_id}">
-                    {intl l='Download' d='chronopostlabel.bo.default'}
-                </a>
-                <a class="btn btn-info pull-right {if !$label_nbr} disabled {/if}" href={url path="/admin/module/ChronopostLabel/getLabel/{$order_id}"}>
-                    {intl l='View' d='chronopostlabel.bo.default'}
-                </a>
-                <a class="btn btn-danger pull-right {if !$label_nbr} disabled {/if}" href="{url path='/admin/module/ChronopostLabel/deleteLabel' orderId=$order_id redirect_url="/admin/order/update/$order_id"} ">
-                    {intl l='Delete' d='chronopostlabel.bo.default'}
-                </a>
-                {if !$label_nbr}
-                    <a class="btn btn-primary pull-right" href={url path="/admin/module/ChronopostLabel/generateLabel" orderId=$order_id}>
-                        {intl l='Generate' d='chronopostlabel.bo.default'}
-                    </a>
-                {/if}
-            </td>
-        </tr>
-    </table>
+</div>
+{/if}
 {/if}

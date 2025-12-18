@@ -6,9 +6,11 @@ namespace ChronopostLabel\Controller;
 use ChronopostHomeDelivery\Model\ChronopostHomeDeliveryOrderQuery;
 use ChronopostLabel\ChronopostLabel;
 use ChronopostLabel\Config\ChronopostLabelConst;
+use ChronopostLabel\Form\ChronopostLabelCreateForm;
 use ChronopostLabel\Form\ChronopostLabelSelectForm;
 use ChronopostLabel\Service\LabelService;
 use ChronopostPickupPoint\Model\ChronopostPickupPointOrderQuery;
+use Propel\Runtime\Exception\PropelException;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -18,6 +20,7 @@ use Thelia\Controller\Admin\BaseAdminController;
 use Thelia\Core\HttpFoundation\Request;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Core\Security\Resource\AdminResources;
+use Thelia\Form\Exception\FormValidationException;
 use Thelia\Log\Tlog;
 use Thelia\Model\CountryQuery;
 use Thelia\Model\Customer;
@@ -154,10 +157,13 @@ class ChronopostLabelController extends BaseAdminController
             return $response;
         }
 
-        $orderId = $requestStack->getCurrentRequest()->get("orderId");
+        $orderId = $requestStack->getCurrentRequest()?->get("orderId");
 
         if(!$chronopostOrder = ChronopostHomeDeliveryOrderQuery::create()->findOneByOrderId($orderId)){
             $chronopostOrder = ChronopostPickupPointOrderQuery::create()->findOneByOrderId($orderId);
+        }
+        if (null === $chronopostOrder) {
+            throw new \Exception("Commande Chronopost introuvable.");
         }
 
         $labelService->createLabel($chronopostOrder);
@@ -167,63 +173,43 @@ class ChronopostLabelController extends BaseAdminController
     }
 
     /**
-     * @Route("/generate", name="_generate_labels", methods="POST")
+     * @Route("/generateLabel", name="_generate_labels", methods="POST")
      */
-    public function generateLabels(LabelService $labelService)
+    public function generateLabels(LabelService $labelService, RequestStack $requestStack)
     {
-
-        $chronopostDir = ChronopostLabel::getConfigValue(ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR);
-        $chronopostTmpDir = $chronopostDir . 'tmp' . DS;
-        $fileSystem = new Filesystem();
-
-        if (! $fileSystem->exists($chronopostTmpDir)){
-            $fileSystem->mkdir($chronopostTmpDir, 0777);
+        if (null !== $response = $this->checkAuth(AdminResources::ORDER, [], AccessManager::UPDATE)) {
+            return $response;
         }
 
-        $selectLabelForm = $this->createForm(ChronopostLabelSelectForm::getName());
+        $form = $this->createForm(ChronopostLabelCreateForm::getName());
 
-        $form = $this->validateForm($selectLabelForm);
+        try {
+            $data = $this->validateForm($form)->getData();
+            $orderId = $data['order_id'];
+            $weight = $data['weight'];
+            $newStatusId = $data['new_status'];
 
-        $data = $form->getData();
-
-        if (!$data['order_id']){
-            return $this->generateRedirect("/admin/module/ChronopostLabel/labels");
-        }
-
-        $statusOption = $data['choice_status'];
-        $otherStatus = $data['choice_status'] === 'other'? $data['status_select']:null;
-
-        foreach ($data['order_id'] as $orderId) {
-
-            if(null == $chronopostOrder = ChronopostHomeDeliveryOrderQuery::create()->findOneByOrderId($orderId)){
+            if (!$chronopostOrder = ChronopostHomeDeliveryOrderQuery::create()->findOneByOrderId($orderId)) {
                 $chronopostOrder = ChronopostPickupPointOrderQuery::create()->findOneByOrderId($orderId);
             }
 
-            if(null == $fileName = $chronopostOrder->getLabelNumber()){
-                $labelService->createLabel($chronopostOrder, $statusOption, $otherStatus);
-                $fileName = $chronopostOrder->getLabelNumber();
+            if (null === $chronopostOrder) {
+                throw new FormValidationException("Commande Chronopost introuvable.");
             }
 
-            $fileSystem->copy($chronopostDir . $fileName, $chronopostTmpDir . $fileName);
+            $statusOption = ($newStatusId === 'no_change') ? null : 'other';
 
+            $labelService->createLabel($chronopostOrder, (string)$statusOption, $newStatusId, $weight);
+
+            return $this->generateRedirect('/admin/order/update/' . $orderId);
+
+        } catch (FormValidationException $e) {
+            $this->createStandardFormValidationErrorMessage($e);
+            return $this->generateRedirect('/admin/order/update/' . $requestStack->getCurrentRequest()?->get('order_id'));
+        } catch (\Exception $e) {
+            $this->createStandardFormValidationErrorMessage(new FormValidationException($e->getMessage()));
+            return $this->generateRedirect('/admin/order/update/' . $requestStack->getCurrentRequest()?->get('order_id'));
         }
-
-        $today = new \DateTime();
-        $name = 'chronopost-label-'.$today->format('Y-m-d_H-i-s').'.zip';
-
-        $zipPath = $chronopostDir.$name;
-
-        $zip = new \ZipArchive();
-        $zip->open($zipPath, \ZipArchive::CREATE);
-        $this->folderToZip($chronopostTmpDir, $zip, strlen($chronopostTmpDir));
-        $zip->close();
-
-        $fileSystem->remove(ChronopostLabel::getConfigValue(ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR) . 'tmp' . DS);
-
-        $params = [ 'zip' => base64_encode($zipPath)];
-
-        return $this->generateRedirect(URL::getInstance()->absoluteUrl('/admin/module/ChronopostLabel/labels', $params));
-
     }
 
     /**
