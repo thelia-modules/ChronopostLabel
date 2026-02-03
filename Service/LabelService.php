@@ -69,14 +69,14 @@ class LabelService
 
     /**
      * @param $chronopostOrder
-     * @param string $statusOption
+     * @param string|null $statusOption
      * @param null $otherStatus
      * @param null $weight
      * @return null
      * @throws PropelException
      * @throws \SoapFault
      */
-    public function createLabel($chronopostOrder, $statusOption = 'default', $otherStatus = null, $weight = null): void
+    public function createLabel($chronopostOrder, ?string $statusOption = 'default', $otherStatus = null, $weight = null): void
     {
         $order = OrderQuery::create()->findOneById($chronopostOrder->getOrderId());
         if (null === $order) {

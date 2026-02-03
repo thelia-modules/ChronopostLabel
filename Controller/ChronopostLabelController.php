@@ -199,8 +199,9 @@ class ChronopostLabelController extends BaseAdminController
             }
 
             $statusOption = ($newStatusId === 'no_change') ? null : 'other';
+            $otherStatus = ($newStatusId === 'no_change') ? null : $newStatusId;
 
-            $labelService->createLabel($chronopostOrder, (string)$statusOption, $newStatusId, $weight);
+            $labelService->createLabel($chronopostOrder, $statusOption, $otherStatus, $weight);
 
             return $this->generateRedirect('/admin/order/update/' . $orderId);
 
