@@ -16,10 +16,9 @@ use Thelia\Controller\Admin\BaseAdminController;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Core\Translation\Translator;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 /**
- * @Route("/admin/module/ChronopostLabel", name="chronopost-label")
  */
 class ChronopostLabelConfigController extends BaseAdminController
 {
@@ -29,6 +28,7 @@ class ChronopostLabelConfigController extends BaseAdminController
      * @return mixed|null|\Symfony\Component\HttpFoundation\Response|\Thelia\Core\HttpFoundation\Response
      * @Route("/config", name="_config_save", methods="POST")
      */
+    #[Route('/admin/module/ChronopostLabel', name: 'chronopost-label')]
     public function saveAction()
     {
         if (null !== $response = $this->checkAuth([AdminResources::MODULE], 'ChronopostLabel', AccessManager::UPDATE)) {
@@ -76,8 +76,8 @@ class ChronopostLabelConfigController extends BaseAdminController
      * Save configuration form - Shipper informations
      *
      * @return mixed|null|\Symfony\Component\HttpFoundation\Response|\Thelia\Core\HttpFoundation\Response
-     * @Route("/configShipper", name="_config_shipper_save", methods="POST")
      */
+    #[Route('/configShipper', name: '_config_shipper_save', methods: ['POST'])]
     public function saveActionShipper()
     {
         if (null !== $response = $this->checkAuth([AdminResources::MODULE], 'ChronopostLabel', AccessManager::UPDATE)) {

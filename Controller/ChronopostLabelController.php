@@ -27,10 +27,9 @@ use Thelia\Model\OrderAddress;
 use Thelia\Model\OrderAddressQuery;
 use Thelia\Model\OrderQuery;
 use Thelia\Tools\URL;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 /**
- * @Route("/admin/module/ChronopostLabel", name="chronopost-label")
  */
 
 class ChronopostLabelController extends BaseAdminController
@@ -38,6 +37,7 @@ class ChronopostLabelController extends BaseAdminController
     /**
      * @Route("/labels", name="_show_labels", methods="GET")
      */
+    #[Route('/admin/module/ChronopostLabel', name: 'chronopost-label')]
     public function showLabels()
     {
         $homeDeliveryModule = ModuleQuery::create()->findOneByCode('ChronopostHomeDelivery')->getActivate();
@@ -54,8 +54,8 @@ class ChronopostLabelController extends BaseAdminController
     }
 
     /**
-     * @Route("/saveLabel", name="_save_label", methods="GET")
      */
+    #[Route('/saveLabel', name: '_save_label', methods: ['GET'])]
     public function saveLabel(RequestStack $requestStack)
     {
         if (null !== $response = $this->checkAuth([AdminResources::MODULE], 'ChronopostLabel', AccessManager::UPDATE)) {
@@ -92,8 +92,8 @@ class ChronopostLabelController extends BaseAdminController
 
 
     /**
-     * @Route("/getLabel/{orderId}", name="_get_label", methods="GET")
      */
+    #[Route('/getLabel/{orderId}', name: '_get_label', methods: ['GET'])]
     public function getLabel($orderId, LabelService $labelService)
     {
         if (null !== $response = $this->checkAuth(AdminResources::ORDER, [], AccessManager::UPDATE)) {
@@ -120,8 +120,8 @@ class ChronopostLabelController extends BaseAdminController
     /**
      * @return \Symfony\Component\HttpFoundation\Response
      * @throws \Propel\Runtime\Exception\PropelException
-     * @Route("/deleteLabel", name="_delete_label", methods="GET")
      */
+    #[Route('/deleteLabel', name: '_delete_label', methods: ['GET'])]
     public function deleteLabel(RequestStack $requestStack)
     {
         $orderId = $requestStack->getCurrentRequest()->get("orderId");
@@ -146,8 +146,8 @@ class ChronopostLabelController extends BaseAdminController
     }
 
     /**
-     * @Route("/generateLabel", name="_generate_label", methods="GET")
      */
+    #[Route('/generateLabel', name: '_generate_label', methods: ['GET'])]
     public function generateLabel(LabelService $labelService, RequestStack $requestStack)
     {
         if (null !== $response = $this->checkAuth(AdminResources::ORDER, [], AccessManager::UPDATE)) {
@@ -167,8 +167,8 @@ class ChronopostLabelController extends BaseAdminController
     }
 
     /**
-     * @Route("/generate", name="_generate_labels", methods="POST")
      */
+    #[Route('/generate', name: '_generate_labels', methods: ['POST'])]
     public function generateLabels(LabelService $labelService)
     {
 
@@ -250,8 +250,8 @@ class ChronopostLabelController extends BaseAdminController
     }
 
     /**
-     * @Route("/labels-zip/{base64EncodedZipFilename}", name="_labels_zip", methods="GET")
      */
+    #[Route('/labels-zip/{base64EncodedZipFilename}', name: '_labels_zip', methods: ['GET'])]
     public function getLabelZip($base64EncodedZipFilename)
     {
         $zipFilename = base64_decode($base64EncodedZipFilename);

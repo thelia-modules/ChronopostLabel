@@ -43,7 +43,7 @@ class GenerateLabelListener extends BaseAdminController implements EventSubscrib
         }
     }
 
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         $events = [];
         if (class_exists('Picking\Event\GenerateLabelEvent')){
