@@ -1,5 +1,7 @@
-<li class="{{ admin_current_location starts with 'chronopost.label' ? 'active' : '' }}" id="module_menu_chronopost_label">
-    <a title="Modules" href="{{ path('chronopost.label.labels') }}">
+{% set is_active = admin_current_location is defined and admin_current_location starts with 'chronopost.label' %}
+<li class="nav-item" id="module_menu_chronopost_label">
+    <a class="nav-link {{ is_active ? 'active' : '' }}" title="Chronopost Labels" href="{{ path('chronopost.label.labels') }}">
+        <i class="bi bi-tags me-2" aria-hidden="true"></i>
         <span class="item-text">{{ 'Chronopost Labels'|trans({}, 'chronopostlabel.bo.default') }}</span>
     </a>
 </li>
