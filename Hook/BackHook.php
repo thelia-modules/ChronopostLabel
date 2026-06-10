@@ -28,7 +28,7 @@ class BackHook extends BaseHook
             'main.in-top-menu-items' => [
                 ['type' => 'back', 'method' => 'onInTopMenuItem'],
             ],
-            'order-edit.delivery-module-bottom' => [
+            'order-edit.bill-top' => [
                 ['type' => 'back', 'method' => 'orderEditBillTop'],
             ],
             'module.configuration' => [
