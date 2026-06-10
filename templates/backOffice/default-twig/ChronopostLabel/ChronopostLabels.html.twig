@@ -1,0 +1,173 @@
+{% extends '@BackOfficeDefaultTwig/base.html.twig' %}
+
+{% block title %}{{ 'Chronopost labels'|trans({}, 'chronopostlabel.bo.default') }}{% endblock %}
+
+{% block body_testid %}chronopost-labels-page{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4">{{ 'Chronopost labels'|trans({}, 'chronopostlabel.bo.default') }}</h1>
+
+    {% for error in errors %}
+        <div class="alert alert-danger">
+            <p>{{ error.message }} {{ error.file }} | {{ 'Please change the access rights'|trans({}, 'chronopostlabel.bo.default') }}.</p>
+        </div>
+    {% endfor %}
+
+    {% if errors is empty %}
+        <form action="{{ path('chronopost.label.generate') }}" id="select-form" method="post">
+            <input type="hidden" name="{{ select_form.vars.full_name }}[_token]" value="{{ select_form._token.vars.value }}">
+
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="choice_status" class="form-label">{{ select_form.choice_status.vars.label }}</label>
+                            <select id="choice_status" name="{{ select_form.choice_status.vars.full_name }}" class="form-select">
+                                {% for child in select_form.choice_status %}
+                                    <option value="{{ child.vars.value }}">{{ child.vars.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-none" id="status-select-wrapper">
+                            <label for="status_select" class="form-label">{{ select_form.status_select.vars.label }}</label>
+                            <select id="status_select" name="{{ select_form.status_select.vars.full_name }}" class="form-select">
+                                {% for child in select_form.status_select %}
+                                    <option value="{{ child.vars.value }}">{{ child.vars.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <button type="submit" class="btn btn-info w-100">{{ 'Generate selected labels'|trans({}, 'chronopostlabel.bo.default') }}</button>
+            </div>
+
+            {% if home_delivery_activate %}
+                <div class="card mb-3">
+                    <div class="card-header">{{ 'Home Delivery'|trans({}, 'chronopostlabel.bo.default') }}</div>
+                    <div class="card-body table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th class="text-center"><input type="checkbox" class="form-check-input" id="head-home-delivery-check"></th>
+                                    <th class="text-center">{{ 'Reference'|trans({}, 'chronopostlabel.bo.default') }}</th>
+                                    <th class="text-center">{{ 'Status'|trans({}, 'chronopostlabel.bo.default') }}</th>
+                                    <th class="text-center">{{ 'Delivery Type'|trans({}, 'chronopostlabel.bo.default') }}</th>
+                                    <th class="text-center">{{ 'Date'|trans({}, 'chronopostlabel.bo.default') }}</th>
+                                    <th class="text-center">{{ 'Total Amount'|trans({}, 'chronopostlabel.bo.default') }}</th>
+                                    <th class="text-center">{{ 'Destination'|trans({}, 'chronopostlabel.bo.default') }}</th>
+                                    <th class="text-center">{{ 'Label Number'|trans({}, 'chronopostlabel.bo.default') }}</th>
+                                    <th class="text-center">{{ 'Action'|trans({}, 'chronopostlabel.bo.default') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in home_orders %}
+                                    <tr>
+                                        <td class="text-center"><input type="checkbox" class="form-check-input home-delivery-check" value="{{ row.id }}" name="{{ select_form.order_id.vars.full_name }}[]"></td>
+                                        <td class="text-center"><a href="{{ path('admin.order.update.view', {order_id: row.id}) }}">{{ row.ref }}</a></td>
+                                        <td class="text-center"><span class="badge" style="background-color: {{ row.status_color }}">{{ row.status_title }}</span></td>
+                                        <td class="text-center">{{ row.delivery_type }}</td>
+                                        <td class="text-center">{{ row.create_date }}</td>
+                                        <td class="text-center">{{ row.total }} {{ currency_symbol }}</td>
+                                        <td class="text-center">{{ row.destination }}</td>
+                                        <td class="text-center"><a href="{{ path('chronopost.label.get_label', {orderId: row.id}) }}">{{ row.label_nbr }}</a></td>
+                                        <td class="text-center">
+                                            {% if row.label_nbr %}
+                                                <a class="btn btn-secondary btn-sm" title="{{ 'Download this label'|trans({}, 'chronopostlabel.bo.default') }}" href="{{ path('chronopost.label.save_label', {orderId: row.id}) }}"><i class="bi bi-save"></i></a>
+                                                <a class="btn btn-danger btn-sm" title="{{ 'Delete this label'|trans({}, 'chronopostlabel.bo.default') }}" href="{{ path('chronopost.label.delete_label', {orderId: row.id, redirect_url: '/admin/module/ChronopostLabel/labels'}) }}"><i class="bi bi-trash"></i></a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if pickup_point_activate %}
+                <div class="card mb-3">
+                    <div class="card-header">{{ 'Pickup Point'|trans({}, 'chronopostlabel.bo.default') }}</div>
+                    <div class="card-body table-responsive">
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th class="text-center"><input type="checkbox" class="form-check-input" id="head-pickup-point-check"></th>
+                                    <th class="text-center">{{ 'Reference'|trans({}, 'chronopostlabel.bo.default') }}</th>
+                                    <th class="text-center">{{ 'Status'|trans({}, 'chronopostlabel.bo.default') }}</th>
+                                    <th class="text-center">{{ 'Delivery Type'|trans({}, 'chronopostlabel.bo.default') }}</th>
+                                    <th class="text-center">{{ 'Date'|trans({}, 'chronopostlabel.bo.default') }}</th>
+                                    <th class="text-center">{{ 'Total Amount'|trans({}, 'chronopostlabel.bo.default') }}</th>
+                                    <th class="text-center">{{ 'Destination'|trans({}, 'chronopostlabel.bo.default') }}</th>
+                                    <th class="text-center">{{ 'Label Number'|trans({}, 'chronopostlabel.bo.default') }}</th>
+                                    <th class="text-center">{{ 'Action'|trans({}, 'chronopostlabel.bo.default') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in pickup_orders %}
+                                    <tr>
+                                        <td class="text-center"><input type="checkbox" class="form-check-input pickup-point-check" value="{{ row.id }}" name="{{ select_form.order_id.vars.full_name }}[]"></td>
+                                        <td class="text-center"><a href="{{ path('admin.order.update.view', {order_id: row.id}) }}">{{ row.ref }}</a></td>
+                                        <td class="text-center"><span class="badge" style="background-color: {{ row.status_color }}">{{ row.status_title }}</span></td>
+                                        <td class="text-center">{{ row.delivery_type }}</td>
+                                        <td class="text-center">{{ row.create_date }}</td>
+                                        <td class="text-center">{{ row.total }} {{ currency_symbol }}</td>
+                                        <td class="text-center">{{ row.destination }}</td>
+                                        <td class="text-center"><a href="{{ path('chronopost.label.get_label', {orderId: row.id}) }}">{{ row.label_nbr }}</a></td>
+                                        <td class="text-center">
+                                            {% if row.label_nbr %}
+                                                <a class="btn btn-secondary btn-sm" title="{{ 'Download this label'|trans({}, 'chronopostlabel.bo.default') }}" href="{{ path('chronopost.label.save_label', {orderId: row.id}) }}"><i class="bi bi-save"></i></a>
+                                                <a class="btn btn-danger btn-sm" title="{{ 'Delete this label'|trans({}, 'chronopostlabel.bo.default') }}" href="{{ path('chronopost.label.delete_label', {orderId: row.id, redirect_url: '/admin/module/ChronopostLabel/labels'}) }}"><i class="bi bi-trash"></i></a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <button type="submit" class="btn btn-info w-100">{{ 'Generate selected labels'|trans({}, 'chronopostlabel.bo.default') }}</button>
+            </div>
+        </form>
+
+        {% if zip_hash %}
+            <iframe style="width:100%;height:20px;border:none" src="{{ path('chronopost.label.labels_zip', {base64EncodedZipFilename: zip_hash}) }}"></iframe>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        function bindCheckAll(headId, itemClass) {
+            var head = document.getElementById(headId);
+            if (!head) {
+                return;
+            }
+            head.addEventListener('change', function () {
+                document.querySelectorAll('.' + itemClass).forEach(function (cb) {
+                    cb.checked = head.checked;
+                });
+            });
+        }
+
+        bindCheckAll('head-home-delivery-check', 'home-delivery-check');
+        bindCheckAll('head-pickup-point-check', 'pickup-point-check');
+
+        var choiceStatus = document.getElementById('choice_status');
+        var statusWrapper = document.getElementById('status-select-wrapper');
+        if (choiceStatus && statusWrapper) {
+            choiceStatus.addEventListener('change', function () {
+                statusWrapper.classList.toggle('d-none', choiceStatus.value !== 'other');
+            });
+        }
+    });
+</script>
+{% endblock %}

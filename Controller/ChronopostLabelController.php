@@ -2,239 +2,315 @@
 
 namespace ChronopostLabel\Controller;
 
-
 use ChronopostHomeDelivery\Model\ChronopostHomeDeliveryOrderQuery;
 use ChronopostLabel\ChronopostLabel;
 use ChronopostLabel\Config\ChronopostLabelConst;
 use ChronopostLabel\Form\ChronopostLabelSelectForm;
 use ChronopostLabel\Service\LabelService;
 use ChronopostPickupPoint\Model\ChronopostPickupPointOrderQuery;
-use Symfony\Component\Filesystem\Exception\IOException;
+use Propel\Runtime\ActiveQuery\Criteria;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\Routing\Attribute\Route;
 use Thelia\Controller\Admin\BaseAdminController;
-use Thelia\Core\HttpFoundation\Request;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Core\Security\Resource\AdminResources;
-use Thelia\Log\Tlog;
-use Thelia\Model\CountryQuery;
-use Thelia\Model\Customer;
+use Thelia\Core\Translation\Translator;
+use Thelia\Model\Currency;
 use Thelia\Model\ModuleQuery;
-use Thelia\Model\Order;
-use Thelia\Model\OrderAddress;
 use Thelia\Model\OrderAddressQuery;
 use Thelia\Model\OrderQuery;
+use Thelia\Model\OrderStatusQuery;
+use Thelia\Tools\DateTimeFormat;
 use Thelia\Tools\URL;
-use Symfony\Component\Routing\Attribute\Route;
-
-/**
- */
+use Twig\Environment;
 
 class ChronopostLabelController extends BaseAdminController
 {
-    /**
-     * @Route("/labels", name="_show_labels", methods="GET")
-     */
-    #[Route('/admin/module/ChronopostLabel', name: 'chronopost-label')]
-    public function showLabels()
+    #[Route('/admin/module/ChronopostLabel/labels', name: 'chronopost.label.labels', methods: ['GET'])]
+    public function showLabels(Request $request, Environment $twig): Response
     {
-        $homeDeliveryModule = ModuleQuery::create()->findOneByCode('ChronopostHomeDelivery')->getActivate();
-        $pickupPointModule = ModuleQuery::create()->findOneByCode('ChronopostPickupPoint')->getActivate();
-        $defaultLabel = ChronopostLabel::getConfigValue(ChronopostLabelConst::CHRONOPOST_LABEL_CHANGE_ORDER_STATUS);
+        if (null !== $response = $this->checkAuth([AdminResources::MODULE], 'ChronopostLabel', AccessManager::VIEW)) {
+            return $response;
+        }
 
-        return $this->render('ChronopostLabel/ChronopostLabels',
-            [
-                'home_delivery_activate'    => "$homeDeliveryModule",
-                'pickup_point_activate'     => "$pickupPointModule",
-                'default_status'            => "$defaultLabel"
-            ]
-        );
+        $homeDeliveryModule = (bool) (ModuleQuery::create()->findOneByCode('ChronopostHomeDelivery')?->getActivate());
+        $pickupPointModule = (bool) (ModuleQuery::create()->findOneByCode('ChronopostPickupPoint')?->getActivate());
+
+        $locale = $request->getSession()->getAdminEditionLang()->getLocale();
+        $dateFormat = DateTimeFormat::getInstance($request)->getFormat();
+        $currencySymbol = Currency::getDefaultCurrency()->getSymbol();
+
+        $errors = $this->buildCheckRightsErrors();
+
+        $selectForm = $this->createForm(ChronopostLabelSelectForm::getName());
+
+        $homeOrders = [];
+        if ($homeDeliveryModule && class_exists(ChronopostHomeDeliveryOrderQuery::class)) {
+            $homeOrders = $this->buildExportRows(
+                ChronopostHomeDeliveryOrderQuery::create()->orderById(Criteria::DESC)->find(),
+                $locale,
+                $dateFormat
+            );
+        }
+
+        $pickupOrders = [];
+        if ($pickupPointModule && class_exists(ChronopostPickupPointOrderQuery::class)) {
+            $pickupOrders = $this->buildExportRows(
+                ChronopostPickupPointOrderQuery::create()->orderById(Criteria::DESC)->find(),
+                $locale,
+                $dateFormat
+            );
+        }
+
+        return new Response($twig->render('@ChronopostLabelModule/backOffice/default-twig/ChronopostLabel/ChronopostLabels.html.twig', [
+            'errors' => $errors,
+            'home_delivery_activate' => $homeDeliveryModule,
+            'pickup_point_activate' => $pickupPointModule,
+            'currency_symbol' => $currencySymbol,
+            'select_form' => $selectForm->getForm()->createView(),
+            'home_orders' => $homeOrders,
+            'pickup_orders' => $pickupOrders,
+            'zip_hash' => $request->query->get('zip'),
+        ]));
     }
 
     /**
+     * @return array<int, array{message: string, file: string}>
      */
-    #[Route('/saveLabel', name: '_save_label', methods: ['GET'])]
-    public function saveLabel(RequestStack $requestStack)
+    private function buildCheckRightsErrors(): array
+    {
+        $config = ChronopostLabelConst::getConfig();
+        $dir = $config[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR];
+        $errors = [];
+
+        if (!is_writable($dir)) {
+            $errors[] = [
+                'message' => Translator::getInstance()->trans("Can't write in the label directory", [], ChronopostLabel::DOMAIN_NAME),
+                'file' => $dir,
+            ];
+        }
+        if (!is_readable($dir)) {
+            $errors[] = [
+                'message' => Translator::getInstance()->trans("Can't read the label directory", [], ChronopostLabel::DOMAIN_NAME),
+                'file' => $dir,
+            ];
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Reproduces the chronopost export loops: one row per chronopost order, enriched with its
+     * order reference, status, destination and total.
+     *
+     * @param iterable<object> $chronopostOrders
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildExportRows(iterable $chronopostOrders, string $locale, ?string $dateFormat): array
+    {
+        $rows = [];
+
+        foreach ($chronopostOrders as $chronopostOrder) {
+            $order = OrderQuery::create()->findPk($chronopostOrder->getOrderId());
+            if (null === $order) {
+                continue;
+            }
+
+            $status = OrderStatusQuery::create()->findPk($order->getStatusId());
+            if (null !== $status) {
+                $status->setLocale($locale);
+            }
+
+            $destination = '';
+            $address = OrderAddressQuery::create()->findPk($order->getDeliveryOrderAddressId());
+            if (null !== $address) {
+                $destination = trim(sprintf('%s, %s %s', $address->getAddress1(), $address->getCity(), $address->getZipcode()));
+            }
+
+            $tax = 0;
+            $total = $order->getTotalAmount($tax);
+
+            $createdAt = $order->getCreatedAt();
+
+            $rows[] = [
+                'id' => $order->getId(),
+                'ref' => $order->getRef(),
+                'status_title' => null !== $status ? $status->getTitle() : '',
+                'status_color' => null !== $status ? $status->getColor() : '',
+                'delivery_type' => $chronopostOrder->getDeliveryType(),
+                'create_date' => $createdAt instanceof \DateTimeInterface ? $createdAt->format($dateFormat) : '',
+                'total' => round((float) $total, 2),
+                'destination' => $destination,
+                'label_nbr' => $chronopostOrder->getLabelNumber(),
+            ];
+        }
+
+        return $rows;
+    }
+
+    #[Route('/admin/module/ChronopostLabel/saveLabel', name: 'chronopost.label.save_label', methods: ['GET'])]
+    public function saveLabel(Request $request): Response
     {
         if (null !== $response = $this->checkAuth([AdminResources::MODULE], 'ChronopostLabel', AccessManager::UPDATE)) {
             return $response;
         }
-        $orderId = $requestStack->getCurrentRequest()->get("orderId");
+        $orderId = $request->query->get('orderId');
 
-        if(!$chronopostOrder = ChronopostHomeDeliveryOrderQuery::create()->findOneByOrderId($orderId)){
+        if (!$chronopostOrder = ChronopostHomeDeliveryOrderQuery::create()->findOneByOrderId($orderId)) {
             $chronopostOrder = ChronopostPickupPointOrderQuery::create()->findOneByOrderId($orderId);
         }
 
-        $labelNbr = $chronopostOrder->getLabelNumber();
-
+        $labelNbr = $chronopostOrder?->getLabelNumber();
         $labelDir = ChronopostLabel::getConfigValue(ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR);
+        $file = $labelDir.'/'.$labelNbr;
 
-        $file = $labelDir .'/'. $labelNbr;
-
-        if (file_exists($file) && $labelNbr != null) {
-            header('Content-Description: File Transfer');
-            header('Content-Type: application/octet-stream');
-            header('Content-Disposition: attachment; filename="'.basename($file).'"');
-            header('Expires: 0');
-            header('Cache-Control: must-revalidate');
-            header('Pragma: public');
-            header('Content-Length: ' . filesize($file));
-            readfile($file);
-        } else {
-            return $this->generateRedirect("/admin/module/ChronopostLabel/labels");
-            // todo : Error message
+        if (null !== $labelNbr && file_exists($file)) {
+            return new BinaryFileResponse(
+                $file,
+                200,
+                ['Content-Type' => 'application/octet-stream'],
+                false,
+                'attachment'
+            );
         }
 
-        return $this->render('ChronopostLabel/ChronopostLabels.html');
+        return $this->generateRedirectFromRoute('chronopost.label.labels');
     }
 
-
-    /**
-     */
-    #[Route('/getLabel/{orderId}', name: '_get_label', methods: ['GET'])]
-    public function getLabel($orderId, LabelService $labelService)
+    #[Route('/admin/module/ChronopostLabel/getLabel/{orderId}', name: 'chronopost.label.get_label', methods: ['GET'])]
+    public function getLabel($orderId, LabelService $labelService): Response
     {
         if (null !== $response = $this->checkAuth(AdminResources::ORDER, [], AccessManager::UPDATE)) {
             return $response;
         }
 
-        if(null == $chronopostOrder = ChronopostHomeDeliveryOrderQuery::create()->findOneByOrderId($orderId)){
+        if (null == $chronopostOrder = ChronopostHomeDeliveryOrderQuery::create()->findOneByOrderId($orderId)) {
             $chronopostOrder = ChronopostPickupPointOrderQuery::create()->findOneByOrderId($orderId);
         }
 
-        if(null == $fileName = $chronopostOrder->getLabelNumber()){
+        if (null == $fileName = $chronopostOrder->getLabelNumber()) {
             $labelService->createLabel($chronopostOrder);
             $fileName = $chronopostOrder->getLabelNumber();
         }
 
-        $file = ChronopostLabel::getConfigValue(ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR) . $fileName;
+        $file = ChronopostLabel::getConfigValue(ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR).$fileName;
 
-        $response = new BinaryFileResponse($file);
-
-        return $response;
+        return new BinaryFileResponse($file);
     }
 
-
-    /**
-     * @return \Symfony\Component\HttpFoundation\Response
-     * @throws \Propel\Runtime\Exception\PropelException
-     */
-    #[Route('/deleteLabel', name: '_delete_label', methods: ['GET'])]
-    public function deleteLabel(RequestStack $requestStack)
+    #[Route('/admin/module/ChronopostLabel/deleteLabel', name: 'chronopost.label.delete_label', methods: ['GET'])]
+    public function deleteLabel(Request $request): Response
     {
-        $orderId = $requestStack->getCurrentRequest()->get("orderId");
+        if (null !== $response = $this->checkAuth([AdminResources::MODULE], 'ChronopostLabel', AccessManager::UPDATE)) {
+            return $response;
+        }
+
+        $orderId = $request->query->get('orderId');
         $order = OrderQuery::create()->findOneById($orderId);
 
-        if(!$chronopostOrder = ChronopostHomeDeliveryOrderQuery::create()->findOneByOrderId($orderId)){
+        if (!$chronopostOrder = ChronopostHomeDeliveryOrderQuery::create()->findOneByOrderId($orderId)) {
             $chronopostOrder = ChronopostPickupPointOrderQuery::create()->findOneByOrderId($orderId);
         }
-        if(file_exists($chronopostOrder->getLabelDirectory() . $chronopostOrder->getLabelNumber())){
-            unlink($chronopostOrder->getLabelDirectory() . $chronopostOrder->getLabelNumber());
+
+        if (null !== $chronopostOrder
+            && file_exists($chronopostOrder->getLabelDirectory().$chronopostOrder->getLabelNumber())) {
+            unlink($chronopostOrder->getLabelDirectory().$chronopostOrder->getLabelNumber());
             $chronopostOrder
                 ->setLabelDirectory(null)
                 ->setLabelNumber(null)
                 ->save();
 
             $order
-                ->setDeliveryRef(null)
+                ?->setDeliveryRef(null)
                 ->save();
         }
 
-        return $this->generateRedirect($this->getRequest()->get("redirect_url"));
+        return $this->generateRedirect($request->query->get('redirect_url'));
     }
 
-    /**
-     */
-    #[Route('/generateLabel', name: '_generate_label', methods: ['GET'])]
-    public function generateLabel(LabelService $labelService, RequestStack $requestStack)
+    #[Route('/admin/module/ChronopostLabel/generateLabel', name: 'chronopost.label.generate_label', methods: ['GET'])]
+    public function generateLabel(LabelService $labelService, Request $request): Response
     {
         if (null !== $response = $this->checkAuth(AdminResources::ORDER, [], AccessManager::UPDATE)) {
             return $response;
         }
 
-        $orderId = $requestStack->getCurrentRequest()->get("orderId");
+        $orderId = $request->query->get('orderId');
 
-        if(!$chronopostOrder = ChronopostHomeDeliveryOrderQuery::create()->findOneByOrderId($orderId)){
+        if (!$chronopostOrder = ChronopostHomeDeliveryOrderQuery::create()->findOneByOrderId($orderId)) {
             $chronopostOrder = ChronopostPickupPointOrderQuery::create()->findOneByOrderId($orderId);
         }
 
         $labelService->createLabel($chronopostOrder);
 
         return $this->generateRedirect('/admin/order/update/'.$orderId);
-
     }
 
-    /**
-     */
-    #[Route('/generate', name: '_generate_labels', methods: ['POST'])]
-    public function generateLabels(LabelService $labelService)
+    #[Route('/admin/module/ChronopostLabel/generate', name: 'chronopost.label.generate', methods: ['POST'])]
+    public function generateLabels(LabelService $labelService): Response
     {
+        if (null !== $response = $this->checkAuth([AdminResources::MODULE], 'ChronopostLabel', AccessManager::UPDATE)) {
+            return $response;
+        }
 
         $chronopostDir = ChronopostLabel::getConfigValue(ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR);
-        $chronopostTmpDir = $chronopostDir . 'tmp' . DS;
+        $chronopostTmpDir = $chronopostDir.'tmp'.DS;
         $fileSystem = new Filesystem();
 
-        if (! $fileSystem->exists($chronopostTmpDir)){
+        if (!$fileSystem->exists($chronopostTmpDir)) {
             $fileSystem->mkdir($chronopostTmpDir, 0777);
         }
 
         $selectLabelForm = $this->createForm(ChronopostLabelSelectForm::getName());
-
         $form = $this->validateForm($selectLabelForm);
-
         $data = $form->getData();
 
-        if (!$data['order_id']){
-            return $this->generateRedirect("/admin/module/ChronopostLabel/labels");
+        if (!$data['order_id']) {
+            return $this->generateRedirectFromRoute('chronopost.label.labels');
         }
 
         $statusOption = $data['choice_status'];
-        $otherStatus = $data['choice_status'] === 'other'? $data['status_select']:null;
+        $otherStatus = 'other' === $data['choice_status'] ? $data['status_select'] : null;
 
         foreach ($data['order_id'] as $orderId) {
-
-            if(null == $chronopostOrder = ChronopostHomeDeliveryOrderQuery::create()->findOneByOrderId($orderId)){
+            if (null == $chronopostOrder = ChronopostHomeDeliveryOrderQuery::create()->findOneByOrderId($orderId)) {
                 $chronopostOrder = ChronopostPickupPointOrderQuery::create()->findOneByOrderId($orderId);
             }
 
-            if(null == $fileName = $chronopostOrder->getLabelNumber()){
+            if (null == $fileName = $chronopostOrder->getLabelNumber()) {
                 $labelService->createLabel($chronopostOrder, $statusOption, $otherStatus);
                 $fileName = $chronopostOrder->getLabelNumber();
             }
 
-            $fileSystem->copy($chronopostDir . $fileName, $chronopostTmpDir . $fileName);
-
+            $fileSystem->copy($chronopostDir.$fileName, $chronopostTmpDir.$fileName);
         }
 
         $today = new \DateTime();
         $name = 'chronopost-label-'.$today->format('Y-m-d_H-i-s').'.zip';
-
         $zipPath = $chronopostDir.$name;
 
         $zip = new \ZipArchive();
         $zip->open($zipPath, \ZipArchive::CREATE);
-        $this->folderToZip($chronopostTmpDir, $zip, strlen($chronopostTmpDir));
+        $this->folderToZip($chronopostTmpDir, $zip, \strlen($chronopostTmpDir));
         $zip->close();
 
-        $fileSystem->remove(ChronopostLabel::getConfigValue(ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR) . 'tmp' . DS);
+        $fileSystem->remove($chronopostDir.'tmp'.DS);
 
-        $params = [ 'zip' => base64_encode($zipPath)];
+        $params = ['zip' => base64_encode($zipPath)];
 
         return $this->generateRedirect(URL::getInstance()->absoluteUrl('/admin/module/ChronopostLabel/labels', $params));
-
     }
 
-    /**
-     * @param $folder
-     * @param \ZipArchive $zipFile
-     * @param $exclusiveLength
-     */
-    private function folderToZip($folder,\ZipArchive &$zipFile, $exclusiveLength) {
+    private function folderToZip($folder, \ZipArchive &$zipFile, $exclusiveLength): void
+    {
         $handle = opendir($folder);
         while (false !== $f = readdir($handle)) {
-            if ($f !== '.' && $f !== '..') {
+            if ('.' !== $f && '..' !== $f) {
                 $filePath = "$folder/$f";
                 $localPath = ltrim(str_replace('\\', '/', substr($filePath, $exclusiveLength)), '/');
 
@@ -249,10 +325,8 @@ class ChronopostLabelController extends BaseAdminController
         closedir($handle);
     }
 
-    /**
-     */
-    #[Route('/labels-zip/{base64EncodedZipFilename}', name: '_labels_zip', methods: ['GET'])]
-    public function getLabelZip($base64EncodedZipFilename)
+    #[Route('/admin/module/ChronopostLabel/labels-zip/{base64EncodedZipFilename}', name: 'chronopost.label.labels_zip', methods: ['GET'])]
+    public function getLabelZip($base64EncodedZipFilename): Response
     {
         $zipFilename = base64_decode($base64EncodedZipFilename);
 
@@ -266,11 +340,11 @@ class ChronopostLabelController extends BaseAdminController
                 [
                     'Content-Type' => 'application/zip',
                     'Content-disposition' => 'attachement; filename=chronopost-labels.zip',
-                    'Content-Length' => filesize($zipFilename)
+                    'Content-Length' => filesize($zipFilename),
                 ]
             );
         }
 
-        return $this->generateRedirect("/admin/module/ChronopostLabel/labels");
+        return $this->generateRedirectFromRoute('chronopost.label.labels');
     }
 }

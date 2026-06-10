@@ -31,7 +31,7 @@ class ChronopostLabel extends BaseModule
      * @param ConnectionInterface|null $con
      * @throws \Propel\Runtime\Exception\PropelException
      */
-    public function postActivation(ConnectionInterface $con = null): void
+    public function postActivation(?ConnectionInterface $con = null): void
     {
         /** Default config values */
         $defaultConfig = [
@@ -76,7 +76,7 @@ class ChronopostLabel extends BaseModule
     public static function configureServices(ServicesConfigurator $servicesConfigurator): void
     {
         $servicesConfigurator->load(self::getModuleCode().'\\', __DIR__)
-            ->exclude([THELIA_MODULE_DIR . ucfirst(self::getModuleCode()). "/I18n/*"])
+            ->exclude([__DIR__.'/I18n/*'])
             ->autowire(true)
             ->autoconfigure(true);
     }

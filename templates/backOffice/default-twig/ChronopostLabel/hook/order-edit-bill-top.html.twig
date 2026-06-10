@@ -1,0 +1,44 @@
+{% if is_chronopost %}
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0">{{ 'Chronopost label'|trans({}, 'chronopostlabel.bo.default') }}</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th>{{ 'Label Number'|trans({}, 'chronopostlabel.bo.default') }}</th>
+                        <th>{{ 'Delivery Type'|trans({}, 'chronopostlabel.bo.default') }}</th>
+                        <th>{{ 'Date'|trans({}, 'chronopostlabel.bo.default') }}</th>
+                        <th>{{ 'Destination'|trans({}, 'chronopostlabel.bo.default') }}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ label_nbr }}</td>
+                        <td>{{ delivery_type }}</td>
+                        <td>{{ create_date }}</td>
+                        <td>{{ destination }}</td>
+                        <td class="text-end">
+                            <a class="btn btn-primary btn-sm{{ label_nbr ? '' : ' disabled' }}" href="{{ path('chronopost.label.save_label', {orderId: order_id, labelNbr: label_nbr}) }}">
+                                {{ 'Download'|trans({}, 'chronopostlabel.bo.default') }}
+                            </a>
+                            <a class="btn btn-info btn-sm{{ label_nbr ? '' : ' disabled' }}" href="{{ path('chronopost.label.get_label', {orderId: order_id}) }}">
+                                {{ 'View'|trans({}, 'chronopostlabel.bo.default') }}
+                            </a>
+                            <a class="btn btn-danger btn-sm{{ label_nbr ? '' : ' disabled' }}" href="{{ path('chronopost.label.delete_label', {orderId: order_id, redirect_url: '/admin/order/update/' ~ order_id}) }}">
+                                {{ 'Delete'|trans({}, 'chronopostlabel.bo.default') }}
+                            </a>
+                            {% if not label_nbr %}
+                                <a class="btn btn-primary btn-sm" href="{{ path('chronopost.label.generate_label', {orderId: order_id}) }}">
+                                    {{ 'Generate'|trans({}, 'chronopostlabel.bo.default') }}
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endif %}

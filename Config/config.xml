@@ -10,19 +10,6 @@
         <loop class="ChronopostLabel\Loop\ChronopostLabelPickupPointExportLoop" name="chronopost.label.export.pickup.point.labels" />
     </loops>
 
-    <forms>
-        <form name="chronopost_label_configuration_form" class="ChronopostLabel\Form\ChronopostLabelConfigurationForm" />
-        <form name="chronopost_label_select_form" class="ChronopostLabel\Form\ChronopostLabelSelectForm" />
-    </forms>
-
-    <hooks>
-        <hook id="chronopost.label.config" class="ChronopostLabel\Hook\BackHook">
-            <tag name="hook.event_listener" event="main.in-top-menu-items" type="back" method="onInTopMenuItem"/>
-            <tag name="hook.event_listener" event="order-edit.bill-top" type="back" method="orderEditBillTop"/>
-            <tag name="hook.event_listener" event="module.configuration" type="back" method="onModuleConfiguration"/>
-        </hook>
-    </hooks>
-
     <!--<services>
         <service id="chronopost.generate.label.service" class="ChronopostLabel\Service\LabelService">
             <argument type="service" id="event_dispatcher"/>
