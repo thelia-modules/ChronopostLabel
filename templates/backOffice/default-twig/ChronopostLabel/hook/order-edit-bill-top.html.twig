@@ -27,13 +27,17 @@
                             <a class="btn btn-info btn-sm{{ label_nbr ? '' : ' disabled' }}" href="{{ path('chronopost.label.get_label', {orderId: order_id}) }}">
                                 {{ 'View'|trans({}, 'chronopostlabel.bo.default') }}
                             </a>
-                            <a class="btn btn-danger btn-sm{{ label_nbr ? '' : ' disabled' }}" href="{{ path('chronopost.label.delete_label', {orderId: order_id, redirect_url: '/admin/order/update/' ~ order_id}) }}">
-                                {{ 'Delete'|trans({}, 'chronopostlabel.bo.default') }}
-                            </a>
+                            <form method="post" class="d-inline" action="{{ path('chronopost.label.delete_label', {orderId: order_id, redirect_url: '/admin/order/update/' ~ order_id}) }}&_token={{ assignToken() }}">
+                                <button type="submit" class="btn btn-danger btn-sm"{{ label_nbr ? '' : ' disabled' }}>
+                                    {{ 'Delete'|trans({}, 'chronopostlabel.bo.default') }}
+                                </button>
+                            </form>
                             {% if not label_nbr %}
-                                <a class="btn btn-primary btn-sm" href="{{ path('chronopost.label.generate_label', {orderId: order_id}) }}">
-                                    {{ 'Generate'|trans({}, 'chronopostlabel.bo.default') }}
-                                </a>
+                                <form method="post" class="d-inline" action="{{ path('chronopost.label.generate_label', {orderId: order_id}) }}&_token={{ assignToken() }}">
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        {{ 'Generate'|trans({}, 'chronopostlabel.bo.default') }}
+                                    </button>
+                                </form>
                             {% endif %}
                         </td>
                     </tr>

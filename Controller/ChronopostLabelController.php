@@ -25,6 +25,7 @@ use Thelia\Model\OrderAddressQuery;
 use Thelia\Model\OrderQuery;
 use Thelia\Model\OrderStatusQuery;
 use Thelia\Tools\DateTimeFormat;
+use Thelia\Tools\TokenProvider;
 use Thelia\Tools\URL;
 use Twig\Environment;
 
@@ -179,7 +180,7 @@ class ChronopostLabelController extends BaseAdminController
             );
         }
 
-        return $this->generateRedirectFromRoute('chronopost.label.labels');
+        return $this->generateRedirect('/admin/module/ChronopostLabel/labels');
     }
 
     #[Route('/admin/module/ChronopostLabel/getLabel/{orderId}', name: 'chronopost.label.get_label', methods: ['GET'])]
@@ -193,6 +194,10 @@ class ChronopostLabelController extends BaseAdminController
             $chronopostOrder = ChronopostPickupPointOrderQuery::create()->findOneByOrderId($orderId);
         }
 
+        if (null === $chronopostOrder) {
+            return $this->generateRedirect('/admin/module/ChronopostLabel/labels');
+        }
+
         if (null == $fileName = $chronopostOrder->getLabelNumber()) {
             $labelService->createLabel($chronopostOrder);
             $fileName = $chronopostOrder->getLabelNumber();
@@ -203,12 +208,14 @@ class ChronopostLabelController extends BaseAdminController
         return new BinaryFileResponse($file);
     }
 
-    #[Route('/admin/module/ChronopostLabel/deleteLabel', name: 'chronopost.label.delete_label', methods: ['GET'])]
-    public function deleteLabel(Request $request): Response
+    #[Route('/admin/module/ChronopostLabel/deleteLabel', name: 'chronopost.label.delete_label', methods: ['POST'])]
+    public function deleteLabel(Request $request, TokenProvider $tokenProvider): Response
     {
         if (null !== $response = $this->checkAuth([AdminResources::MODULE], 'ChronopostLabel', AccessManager::UPDATE)) {
             return $response;
         }
+
+        $tokenProvider->checkToken((string) $request->query->get('_token'));
 
         $orderId = $request->query->get('orderId');
         $order = OrderQuery::create()->findOneById($orderId);
@@ -233,17 +240,23 @@ class ChronopostLabelController extends BaseAdminController
         return $this->generateRedirect($request->query->get('redirect_url'));
     }
 
-    #[Route('/admin/module/ChronopostLabel/generateLabel', name: 'chronopost.label.generate_label', methods: ['GET'])]
-    public function generateLabel(LabelService $labelService, Request $request): Response
+    #[Route('/admin/module/ChronopostLabel/generateLabel', name: 'chronopost.label.generate_label', methods: ['POST'])]
+    public function generateLabel(LabelService $labelService, Request $request, TokenProvider $tokenProvider): Response
     {
         if (null !== $response = $this->checkAuth(AdminResources::ORDER, [], AccessManager::UPDATE)) {
             return $response;
         }
 
+        $tokenProvider->checkToken((string) $request->query->get('_token'));
+
         $orderId = $request->query->get('orderId');
 
         if (!$chronopostOrder = ChronopostHomeDeliveryOrderQuery::create()->findOneByOrderId($orderId)) {
             $chronopostOrder = ChronopostPickupPointOrderQuery::create()->findOneByOrderId($orderId);
+        }
+
+        if (null === $chronopostOrder) {
+            return $this->generateRedirect('/admin/order/update/'.$orderId);
         }
 
         $labelService->createLabel($chronopostOrder);
@@ -271,7 +284,7 @@ class ChronopostLabelController extends BaseAdminController
         $data = $form->getData();
 
         if (!$data['order_id']) {
-            return $this->generateRedirectFromRoute('chronopost.label.labels');
+            return $this->generateRedirect('/admin/module/ChronopostLabel/labels');
         }
 
         $statusOption = $data['choice_status'];
@@ -328,7 +341,25 @@ class ChronopostLabelController extends BaseAdminController
     #[Route('/admin/module/ChronopostLabel/labels-zip/{base64EncodedZipFilename}', name: 'chronopost.label.labels_zip', methods: ['GET'])]
     public function getLabelZip($base64EncodedZipFilename): Response
     {
+        if (null !== $response = $this->checkAuth([AdminResources::MODULE], 'ChronopostLabel', AccessManager::VIEW)) {
+            return $response;
+        }
+
         $zipFilename = base64_decode($base64EncodedZipFilename);
+
+        // Confine the decoded path to the configured label dir + chronopost-label- prefix (defeats arbitrary file read).
+        $resolved = realpath($zipFilename);
+        $labelDir = realpath((string) ChronopostLabel::getConfigValue(ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR));
+
+        if (false === $resolved
+            || false === $labelDir
+            || !str_starts_with($resolved, $labelDir.DS)
+            || !str_starts_with(basename($resolved), 'chronopost-label-')
+        ) {
+            return $this->generateRedirect('/admin/module/ChronopostLabel/labels');
+        }
+
+        $zipFilename = $resolved;
 
         if (file_exists($zipFilename)) {
             return new StreamedResponse(
@@ -345,6 +376,6 @@ class ChronopostLabelController extends BaseAdminController
             );
         }
 
-        return $this->generateRedirectFromRoute('chronopost.label.labels');
+        return $this->generateRedirect('/admin/module/ChronopostLabel/labels');
     }
 }
