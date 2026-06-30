@@ -24,7 +24,10 @@ class ChronopostLabelSelectForm extends BaseForm
 
     protected function buildForm(): void
     {
-        $locale = $this->getRequest()->getSession()->getAdminEditionLang()->getLocale();
+        $request = $this->getRequest();
+        $locale = (null !== $request && $request->hasSession())
+            ? $request->getSession()->getAdminEditionLang()->getLocale()
+            : (\Thelia\Model\LangQuery::create()->findOneByByDefault(true)?->getLocale() ?? 'en_US');
 
         $OrderStatus = OrderStatusQuery::create()->find();
         $choices = [];

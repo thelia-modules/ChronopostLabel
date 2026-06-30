@@ -41,7 +41,9 @@ class ChronopostLabelController extends BaseAdminController
         $homeDeliveryModule = (bool) (ModuleQuery::create()->findOneByCode('ChronopostHomeDelivery')?->getActivate());
         $pickupPointModule = (bool) (ModuleQuery::create()->findOneByCode('ChronopostPickupPoint')?->getActivate());
 
-        $locale = $request->getSession()->getAdminEditionLang()->getLocale();
+        $locale = $request->hasSession()
+            ? $request->getSession()->getAdminEditionLang()->getLocale()
+            : (\Thelia\Model\LangQuery::create()->findOneByByDefault(true)?->getLocale() ?? 'en_US');
         $dateFormat = DateTimeFormat::getInstance($request)->getFormat();
         $currencySymbol = Currency::getDefaultCurrency()->getSymbol();
 
