@@ -27,12 +27,11 @@ use Thelia\Model\OrderStatusQuery;
 use Thelia\Tools\DateTimeFormat;
 use Thelia\Tools\TokenProvider;
 use Thelia\Tools\URL;
-use Twig\Environment;
 
 class ChronopostLabelController extends BaseAdminController
 {
     #[Route('/admin/module/ChronopostLabel/labels', name: 'chronopost.label.labels', methods: ['GET'])]
-    public function showLabels(Request $request, Environment $twig): Response
+    public function showLabels(Request $request): Response
     {
         if (null !== $response = $this->checkAuth([AdminResources::MODULE], 'ChronopostLabel', AccessManager::VIEW)) {
             return $response;
@@ -69,7 +68,11 @@ class ChronopostLabelController extends BaseAdminController
             );
         }
 
-        return new Response($twig->render('@ChronopostLabelModule/backOffice/default-twig/ChronopostLabel/ChronopostLabels.html.twig', [
+        // Render through BaseAdminController so the active back-office template
+        // engine is resolved automatically: Smarty (default -> .html) or
+        // Twig (default-twig -> .html.twig). The Smarty template is self-sufficient
+        // (its own loops/forms) and ignores the args below, which feed the Twig one.
+        return $this->render('ChronopostLabel/ChronopostLabels', [
             'errors' => $errors,
             'home_delivery_activate' => $homeDeliveryModule,
             'pickup_point_activate' => $pickupPointModule,
@@ -78,7 +81,7 @@ class ChronopostLabelController extends BaseAdminController
             'home_orders' => $homeOrders,
             'pickup_orders' => $pickupOrders,
             'zip_hash' => $request->query->get('zip'),
-        ]));
+        ]);
     }
 
     /**

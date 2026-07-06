@@ -126,11 +126,12 @@
                                                    href="{url path="/admin/module/ChronopostLabel/saveLabel" orderId=$ID}">
                                                     <span class="glyphicon glyphicon-floppy-disk"></span>
                                                 </a>
-                                                <a class="btn btn-danger btn-xs"
-                                                   title="{intl l='Delete this label' d='chronopostlabel.bo.default'}"
-                                                   href="{url path='/admin/module/ChronopostLabel/deleteLabel' orderId=$ID redirect_url="/admin/module/ChronopostLabel/labels"}">
-                                                    <span class="glyphicon glyphicon-trash"></span>
-                                                </a>
+                                                <form method="post" class="chronopost-inline-form" action="{token_url path='/admin/module/ChronopostLabel/deleteLabel' orderId=$ID redirect_url='/admin/module/ChronopostLabel/labels'}">
+                                                    <button type="submit" class="btn btn-danger btn-xs"
+                                                            title="{intl l='Delete this label' d='chronopostlabel.bo.default'}">
+                                                        <span class="glyphicon glyphicon-trash"></span>
+                                                    </button>
+                                                </form>
                                             {/if}
                                         </td>
                                     </tr>
@@ -212,11 +213,12 @@
                                                    href="{url path="/admin/module/ChronopostLabel/saveLabel" orderId=$ID}">
                                                     <span class="glyphicon glyphicon-floppy-disk"></span>
                                                 </a>
-                                                <a class="btn btn-danger btn-xs"
-                                                   title="{intl l='Delete this label' d='chronopostlabel.bo.default'}"
-                                                   href="{url path='/admin/module/ChronopostLabel/deleteLabel' orderId=$ID redirect_url="/admin/module/ChronopostLabel/labels"}">
-                                                    <span class="glyphicon glyphicon-trash"></span>
-                                                </a>
+                                                <form method="post" class="chronopost-inline-form" action="{token_url path='/admin/module/ChronopostLabel/deleteLabel' orderId=$ID redirect_url='/admin/module/ChronopostLabel/labels'}">
+                                                    <button type="submit" class="btn btn-danger btn-xs"
+                                                            title="{intl l='Delete this label' d='chronopostlabel.bo.default'}">
+                                                        <span class="glyphicon glyphicon-trash"></span>
+                                                    </button>
+                                                </form>
                                             {/if}
                                         </td>
                                     </tr>

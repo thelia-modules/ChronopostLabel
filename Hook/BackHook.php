@@ -39,14 +39,14 @@ class BackHook extends BaseHook
 
     public function onInTopMenuItem(HookRenderEvent $event): void
     {
-        $event->add($this->render('ChronopostLabel/hook/main-in-top-menu-items.html.twig', []));
+        $event->add($this->render($this->resolveTemplateName('ChronopostLabel/hook/main-in-top-menu-items'), []));
     }
 
     public function onModuleConfiguration(HookRenderEvent $event): void
     {
         $form = $this->formFactory->createForm(ChronopostLabelConfigurationForm::getName());
 
-        $event->add($this->render('ChronopostLabel/ChronopostLabelConfig.html.twig', [
+        $event->add($this->render($this->resolveTemplateName('ChronopostLabel/ChronopostLabelConfig'), [
             'form' => $form->createView()->getView(),
         ]));
     }
@@ -96,7 +96,7 @@ class BackHook extends BaseHook
             $destination = trim(sprintf('%s %s %s', $address->getAddress1(), $address->getCity(), $address->getZipcode()));
         }
 
-        $event->add($this->render('ChronopostLabel/hook/order-edit-bill-top.html.twig', [
+        $event->add($this->render($this->resolveTemplateName('ChronopostLabel/hook/order-edit-bill-top'), [
             'is_chronopost' => $isChronopost,
             'order_id' => $orderId,
             'label_nbr' => $labelNumber,
@@ -104,5 +104,16 @@ class BackHook extends BaseHook
             'create_date' => $createDate,
             'destination' => $destination,
         ]));
+    }
+
+    /**
+     * Append the current parser extension so the same hook serves the Smarty (default)
+     * and Twig (default-twig) back-office templates: Smarty -> ".html", Twig -> ".html.twig".
+     */
+    private function resolveTemplateName(string $baseName): string
+    {
+        $extension = ParserResolver::getCurrentParser()?->getFileExtension() ?? 'html';
+
+        return $baseName.'.'.$extension;
     }
 }
