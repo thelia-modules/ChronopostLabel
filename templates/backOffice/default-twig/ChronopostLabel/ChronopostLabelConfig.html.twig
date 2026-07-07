@@ -1,14 +1,16 @@
 <form action="{{ path('chronopost.label.config.save') }}" method="post">
     <input type="hidden" name="{{ form.vars.full_name }}[success_url]" value="{{ path('admin.module.configure', {module_code: 'ChronopostLabel'}) }}">
     {% do form.success_url.setRendered %}
+    <div class="d-flex justify-content-end mb-3">
+        <button type="submit" class="btn btn-success btn-sm">
+            <i class="bi bi-save"></i> {{ 'Save'|trans }}
+        </button>
+    </div>
     <div class="row">
         <div class="col-md-6">
             <div class="card mb-3">
-                <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="card-header">
                     <h5 class="card-title mb-0">{{ 'Chronopost informations'|trans({}, 'chronopostlabel.bo.default') }}</h5>
-                    <button type="submit" class="btn btn-success btn-sm">
-                        <i class="bi bi-save"></i> {{ 'Save'|trans }}
-                    </button>
                 </div>
                 <div class="card-body">
                     {{ form_errors(form) }}

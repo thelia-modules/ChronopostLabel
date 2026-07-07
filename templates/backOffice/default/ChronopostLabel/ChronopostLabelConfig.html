@@ -9,15 +9,16 @@
 
             {render_form_field field="success_url" value={url path="/admin/module/ChronopostLabel"}}
 
+            {include
+            file      = "includes/inner-form-toolbar.html"
+            hide_flags = true
+            hide_save_and_close_button = true
+            }
+
             <div style="display: flex; gap: 1rem">
                 <div class="col-md-6 panel panel-default" style="flex: 1">
                     <div class="panel-heading">
                         <h4 class="panel-title">{intl l="Chronopost informations"}</h4>
-                        {include
-                        file      = "includes/inner-form-toolbar.html"
-                        hide_flags = true
-                        hide_save_and_close_button = true
-                        }
                     </div>
                     <div class="panel-body">
                         {render_form_field field="chronopost_label_code"}
