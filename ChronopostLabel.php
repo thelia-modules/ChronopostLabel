@@ -16,6 +16,7 @@ namespace ChronopostLabel;
 use ChronopostLabel\Config\ChronopostLabelConst;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
+use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Thelia\Model\ConfigQuery;
 use Thelia\Model\Message;
@@ -64,11 +65,18 @@ class ChronopostLabel extends BaseModule
             }
         }
 
-        /** Check if the path given is a directory, creates it otherwise */
+        /**
+         * Try to create the label directory, but never let a filesystem failure
+         * (e.g. "Permission denied") break module activation: the directory is
+         * validated and reported from the module configuration page.
+         */
         $dir = self::getConfigValue(ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR, null);
-        $fs = new Filesystem();
-        if (!is_dir($dir)) {
-            $fs->mkdir($dir);
+        if (null !== $dir && !is_dir($dir)) {
+            try {
+                (new Filesystem())->mkdir($dir);
+            } catch (IOExceptionInterface $exception) {
+                // Silently ignore: the configuration page reports the unusable path to the admin.
+            }
         }
 
     }

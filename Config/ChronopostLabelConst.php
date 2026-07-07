@@ -85,16 +85,17 @@ class ChronopostLabelConst
 
 
         /** Add a / to the end of the path for the label directory if it wasn't added manually */
-        if (substr($config[self::CHRONOPOST_LABEL_LABEL_DIR], -1) !== '/') {
+        if ('' !== (string) $config[self::CHRONOPOST_LABEL_LABEL_DIR]
+            && !str_ends_with((string) $config[self::CHRONOPOST_LABEL_LABEL_DIR], '/')) {
             $config[self::CHRONOPOST_LABEL_LABEL_DIR] .= '/';
         }
 
-        /** Check if the label directory exists, create it if it doesn't */
-        if (!is_dir($config[self::CHRONOPOST_LABEL_LABEL_DIR])) {
-            $fs = new Filesystem();
-
-            $fs->mkdir($config[self::CHRONOPOST_LABEL_LABEL_DIR]);
-        }
+        /**
+         * The label directory is NOT created here on purpose: getConfig() is a read accessor
+         * also called while building the configuration form. Creating the directory here made
+         * a failed mkdir() (e.g. "Permission denied") bubble up as a HTTP 500 on the config page.
+         * Directory creation and permission checks now happen in ChronopostLabelConfigController.
+         */
 
         /** Set the local static config value */
         self::$config = $config;

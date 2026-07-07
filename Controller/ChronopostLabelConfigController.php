@@ -5,6 +5,8 @@ namespace ChronopostLabel\Controller;
 use ChronopostLabel\ChronopostLabel;
 use ChronopostLabel\Config\ChronopostLabelConst;
 use ChronopostLabel\Form\ChronopostLabelConfigurationForm;
+use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Thelia\Controller\Admin\BaseAdminController;
@@ -54,6 +56,8 @@ class ChronopostLabelConfigController extends BaseAdminController
             foreach ($configKeys as $key) {
                 ChronopostLabel::setConfigValue($key, $data[$key]);
             }
+
+            $this->ensureLabelDirectoryIsUsable($data[ChronopostLabelConst::CHRONOPOST_LABEL_LABEL_DIR]);
         } catch (\Exception $e) {
             $this->setupFormErrorContext(
                 Translator::getInstance()->trans('Error', [], ChronopostLabel::DOMAIN_NAME),
@@ -69,5 +73,45 @@ class ChronopostLabelConfigController extends BaseAdminController
         }
 
         return $this->generateSuccessRedirect($form);
+    }
+
+    /**
+     * Make sure the configured label directory exists and is writable, creating it if needed.
+     * A friendly, translated exception is thrown instead of letting a raw mkdir() failure
+     * (e.g. "Permission denied") bubble up as a HTTP 500.
+     */
+    private function ensureLabelDirectoryIsUsable(?string $directory): void
+    {
+        $directory = trim((string) $directory);
+
+        if ('' === $directory) {
+            return;
+        }
+
+        $filesystem = new Filesystem();
+
+        if (!$filesystem->exists($directory)) {
+            try {
+                $filesystem->mkdir($directory);
+            } catch (IOExceptionInterface $exception) {
+                throw new \RuntimeException(
+                    Translator::getInstance()->trans(
+                        'The label directory "%path" does not exist and could not be created. Please check the path and its write permissions.',
+                        ['%path' => $directory],
+                        ChronopostLabel::DOMAIN_NAME
+                    )
+                );
+            }
+        }
+
+        if (!is_writable($directory)) {
+            throw new \RuntimeException(
+                Translator::getInstance()->trans(
+                    'The label directory "%path" is not writable. Please check its permissions.',
+                    ['%path' => $directory],
+                    ChronopostLabel::DOMAIN_NAME
+                )
+            );
+        }
     }
 }

@@ -25,6 +25,8 @@ return array(
     'Save this price slice' => 'Sauvegarder cette tranche de prix',
     'Shipper informations' => 'Informations sur l\'expéditeur',
     'Status' => 'Statut',
+    'The label directory "%path" does not exist and could not be created. Please check the path and its write permissions.' => 'Le répertoire d\'étiquettes « %path » n\'existe pas et n\'a pas pu être créé. Veuillez vérifier le chemin indiqué et ses droits d\'écriture.',
+    'The label directory "%path" is not writable. Please check its permissions.' => 'Le répertoire d\'étiquettes « %path » n\'est pas accessible en écriture. Veuillez vérifier ses droits.',
     'Total Amount' => 'Montant total',
     'View' => 'Voir',
 );
