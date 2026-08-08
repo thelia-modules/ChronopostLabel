@@ -1,11 +1,11 @@
 {
   "name": "thelia/chronopost-label-module",
-  "license": "LGPL-3.0+",
+  "license": "GPL-3.0-or-later",
   "type": "thelia-module",
   "require": {
-    "thelia/installer": "~1.1",
-    "thelia/chronopost-home-delivery-module": "dev-twig",
-    "thelia/chronopost-pickup-point-module": "dev-twig"
+    "thelia/installer": "^1.6",
+    "thelia/chronopost-home-delivery-module": "^3.0",
+    "thelia/chronopost-pickup-point-module": "^3.0"
   },
   "extra": {
     "installer-name": "ChronopostLabel"
