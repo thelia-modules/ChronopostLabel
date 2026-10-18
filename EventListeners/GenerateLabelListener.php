@@ -29,9 +29,9 @@ class GenerateLabelListener extends BaseAdminController implements EventSubscrib
     }
 
     /**
-     * @param GenerateLabelEvent $event
+     * Receives a Picking GenerateLabelEvent; typed as object because the Picking module is optional.
      */
-    public function generateLabel(GenerateLabelEvent $event)
+    public function generateLabel(object $event)
     {
         $deliveryModuleCode = $event->getOrder()->getModuleRelatedByDeliveryModuleId()->getCode();
         if ($deliveryModuleCode === "ChronopostHomeDelivery" || $deliveryModuleCode === "ChronopostPickupPoint") {
