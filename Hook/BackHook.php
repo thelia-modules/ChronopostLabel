@@ -112,7 +112,7 @@ class BackHook extends BaseHook
      */
     private function resolveTemplateName(string $baseName): string
     {
-        $extension = ParserResolver::getCurrentParser()?->getFileExtension() ?? 'html';
+        $extension = ParserResolver::getCurrentParser()?->getFileExtension() ?? 'html.twig';
 
         return $baseName.'.'.$extension;
     }
