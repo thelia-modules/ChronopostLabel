@@ -77,7 +77,7 @@
                                         <td class="text-center">
                                             {% if row.label_nbr %}
                                                 <a class="btn btn-secondary btn-sm" title="{{ 'Download this label'|trans({}, 'chronopostlabel.bo.default') }}" href="{{ path('chronopost.label.save_label', {orderId: row.id}) }}"><i class="bi bi-save"></i></a>
-                                                <form method="post" class="d-inline" action="{{ path('chronopost.label.delete_label', {orderId: row.id, redirect_url: '/admin/module/ChronopostLabel/labels'}) }}"><input type="hidden" name="_token" value="{{ assignToken() }}"><button type="submit" class="btn btn-danger btn-sm" title="{{ 'Delete this label'|trans({}, 'chronopostlabel.bo.default') }}"><i class="bi bi-trash"></i></button></form>
+                                                <button type="submit" form="delete-label-{{ row.id }}" class="btn btn-danger btn-sm" title="{{ 'Delete this label'|trans({}, 'chronopostlabel.bo.default') }}"><i class="bi bi-trash"></i></button>
                                             {% endif %}
                                         </td>
                                     </tr>
@@ -120,7 +120,7 @@
                                         <td class="text-center">
                                             {% if row.label_nbr %}
                                                 <a class="btn btn-secondary btn-sm" title="{{ 'Download this label'|trans({}, 'chronopostlabel.bo.default') }}" href="{{ path('chronopost.label.save_label', {orderId: row.id}) }}"><i class="bi bi-save"></i></a>
-                                                <form method="post" class="d-inline" action="{{ path('chronopost.label.delete_label', {orderId: row.id, redirect_url: '/admin/module/ChronopostLabel/labels'}) }}"><input type="hidden" name="_token" value="{{ assignToken() }}"><button type="submit" class="btn btn-danger btn-sm" title="{{ 'Delete this label'|trans({}, 'chronopostlabel.bo.default') }}"><i class="bi bi-trash"></i></button></form>
+                                                <button type="submit" form="delete-label-{{ row.id }}" class="btn btn-danger btn-sm" title="{{ 'Delete this label'|trans({}, 'chronopostlabel.bo.default') }}"><i class="bi bi-trash"></i></button>
                                             {% endif %}
                                         </td>
                                     </tr>
@@ -135,6 +135,13 @@
                 <button type="submit" class="btn btn-info w-100">{{ 'Generate selected labels'|trans({}, 'chronopostlabel.bo.default') }}</button>
             </div>
         </form>
+
+        {# Delete forms live outside #select-form (nested forms are invalid HTML); the row buttons target them via form="..." #}
+        {% for row in (home_orders|default([]))|merge(pickup_orders|default([])) %}
+            {% if row.label_nbr %}
+                <form method="post" id="delete-label-{{ row.id }}" action="{{ path('chronopost.label.delete_label', {orderId: row.id, redirect_url: '/admin/module/ChronopostLabel/labels'}) }}"><input type="hidden" name="_token" value="{{ assignToken() }}"></form>
+            {% endif %}
+        {% endfor %}
 
         {% if zip_hash %}
             <iframe style="width:100%;height:20px;border:none" src="{{ path('chronopost.label.labels_zip', {base64EncodedZipFilename: zip_hash}) }}"></iframe>
